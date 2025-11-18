@@ -2757,24 +2757,62 @@
         e.preventDefault();
         const form = e.target;
         const formData = new FormData(form);
-        const csrfToken = formData.get('_token');
+        const errorElement = document.getElementById('loginError');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        
+        // Tampilkan loading state
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+        
+        try {
+            const response = await fetch('{{ route("login.post") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': formData.get('_token'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    email: formData.get('email'),
+                    password: formData.get('password'),
+                    _token: formData.get('_token')
+                })
+            });
 
-        const response = await fetch('{{ route("login") }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': csrfToken,
-                'Accept': 'application/json'
-            },
-            body: formData
-        });
-
-        const data = await response.json();
-        if (data.success || response.ok) {
-            // Tutup modal dan reload halaman saat ini
-            document.getElementById('loginModal').style.display = 'none';
-            window.location.reload();
-        } else {
-            document.getElementById('loginError').innerText = data.message || 'Login gagal';
+            const data = await response.json();
+            
+            if (data.success) {
+                // Tutup modal login
+                const loginModal = document.getElementById('loginModal');
+                if (loginModal) loginModal.style.display = 'none';
+                
+                // Jika ada redirect URL (untuk admin), arahkan ke sana
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                } else {
+                    // Jika tidak ada redirect, reload halaman
+                    window.location.reload();
+                }
+            } else {
+                // Tampilkan pesan error
+                errorElement.innerText = data.message || 'Email atau password salah.';
+                errorElement.style.display = 'block';
+                
+                // Fokus ke input email jika ada error
+                const emailInput = form.querySelector('input[name="email"]');
+                if (emailInput) emailInput.focus();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            errorElement.innerText = 'Terjadi kesalahan koneksi. Silakan coba lagi.';
+            errorElement.style.display = 'block';
+        } finally {
+            // Reset button state
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalButtonText;
         }
     });
 

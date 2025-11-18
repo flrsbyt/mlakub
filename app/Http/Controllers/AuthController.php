@@ -19,12 +19,37 @@ class AuthController extends Controller
 
         if (Auth::attempt($request->only('email', 'password'))) {
             $request->session()->regenerate();
-            return response()->json(['success' => true]);
+            
+            if (Auth::user()->role === 'admin') {
+                // Untuk request AJAX, kembalikan JSON dengan redirect URL
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'redirect' => route('admin.dashboard')
+                    ]);
+                }
+                // Untuk request biasa, langsung redirect
+                return redirect()->route('admin.dashboard');
+            }
+            
+            // Untuk user biasa
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true]);
+            }
+            
+            return redirect()->intended(route('home'));
         }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Email atau password salah.'
+        // Jika autentikasi gagal
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email atau password salah.'
+            ], 401);
+        }
+        
+        return back()->withErrors([
+            'email' => 'Email atau password salah.',
         ]);
     }
 

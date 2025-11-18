@@ -20,5 +20,9 @@ class DatabaseSeeder extends Seeder
             'profil' => null,
             'tanggal_daftar' => now()->toDateString(),
         ]);
+
+        $this->call([
+            AdminSeeder::class,
+        ]);
     }
 }
