@@ -12,11 +12,16 @@ class AdminController extends Controller
     // 🔹 Dashboard
     public function dashboard()
     {
+        // Cek apakah user memiliki role admin
+        if (Auth::user()->role !== 'admin') {
+            return redirect()->route('home')->with('error', 'Anda tidak memiliki akses ke halaman admin');
+        }
+
         $totalUsers = User::count();
         $totalAdmins = User::where('role', 'admin')->count();
         $totalRegularUsers = User::where('role', 'user')->count();
         
-        $recentUsers = User::latest()->take(5)->get();
+        $recentUsers = User::orderBy('tanggal_daftar', 'desc')->take(5)->get();
         
         return view('admin.dashboard', compact(
             'totalUsers',

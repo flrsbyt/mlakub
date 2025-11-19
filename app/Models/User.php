@@ -18,6 +18,7 @@ class User extends Authenticatable
         'asal',
         'profil',
         'tanggal_daftar',
+        'role',
     ];
 
     protected $hidden = ['password'];
