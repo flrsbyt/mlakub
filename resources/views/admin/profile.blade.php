@@ -192,11 +192,11 @@
                 <div class="dates-row">
                     <div class="date-col">
                         <div class="text-muted small">Dibuat</div>
-                        <div>{{ $user->created_at->format('d M Y') }}</div>
+                        <div>{{ $user->created_at ? $user->created_at->format('d M Y') : 'N/A' }}</div>
                     </div>
                     <div class="date-col text-end">
                         <div class="text-muted small">Update Terakhir</div>
-                        <div>{{ $user->updated_at->format('d M Y') }}</div>
+                        <div>{{ $user->updated_at ? $user->updated_at->format('d M Y') : 'N/A' }}</div>
                     </div>
                 </div>
             </div>

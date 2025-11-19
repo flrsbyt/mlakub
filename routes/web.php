@@ -4,11 +4,22 @@
 // =====================================
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 
 // Authentication Routes
 Route::get('/login', function () {
+    if (Auth::check()) {
+        // Debug: Log current user
+        \Log::info('GET /login - User already logged in: ' . Auth::user()->email . ' with role: ' . Auth::user()->role);
+        
+        // Jika sudah login, redirect ke dashboard yang sesuai
+        if (Auth::user()->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+        return redirect()->route('home');
+    }
     return redirect()->route('home');
 })->name('login');
 

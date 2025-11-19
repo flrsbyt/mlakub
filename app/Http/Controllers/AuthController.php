@@ -20,6 +20,9 @@ class AuthController extends Controller
         if (Auth::attempt($request->only('email', 'password'))) {
             $request->session()->regenerate();
             
+            // Debug: Log user role
+            \Log::info('User logged in: ' . Auth::user()->email . ' with role: ' . Auth::user()->role);
+            
             if (Auth::user()->role === 'admin') {
                 // Untuk request AJAX, kembalikan JSON dengan redirect URL
                 if ($request->ajax() || $request->wantsJson()) {
