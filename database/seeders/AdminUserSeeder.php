@@ -17,12 +17,14 @@ class AdminUserSeeder extends Seeder
         User::create([
             'username' => 'admin',
             'email' => 'admin@admin.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('123'),
             'role' => 'admin',
             'ktp' => '1234567890123456',
             'nomor_hp' => '08123456789',
             'asal' => 'Admin Office',
             'tanggal_daftar' => now(),
+            'profil' => null, // Add default null for profile
+            'profile_photo' => null, // Add default null for profile photo
         ]);
     }
 }

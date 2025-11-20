@@ -10,35 +10,26 @@
         max-width: 100%;
         margin: 0 auto;
         background: white;
-        border-radius: 20px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
         overflow: hidden;
-        border: 1px solid rgba(255,255,255,0.2);
+        border: 1px solid rgba(0,0,0,0.1);
     }
 
     .panel-header {
-        padding: 1.5rem 1.5rem 1rem;
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, rgba(255,140,0,0.05), rgba(255,255,255,0.95));
+        border-bottom: 1px solid #f1f5f9;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: linear-gradient(135deg, rgba(255,140,0,0.05), rgba(255,255,255,0.95));
-        border-bottom: 1px solid #f1f5f9;
     }
 
     .panel-title {
-        font-size: 1.5rem;
         font-weight: 700;
         color: #1e293b;
-    }
-
-    .notification-badge {
-        background: linear-gradient(135deg, #ff8c00, #ff7700);
-        color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        box-shadow: 0 4px 12px rgba(255,140,0,0.3);
+        font-size: 1.1rem;
+        margin: 0;
     }
 
     .panel-tabs {
@@ -50,122 +41,121 @@
 
     .panel-tab {
         flex: 1;
-        padding: 1rem 0.5rem;
+        padding: 0.75rem 0.5rem;
         text-align: center;
         background: none;
         border: none;
         cursor: pointer;
         font-size: 0.9rem;
-        font-weight: 600;
+        font-weight: 500;
         color: #64748b;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         position: relative;
+    }
+
+    .panel-tab:hover {
+        color: #475569;
     }
 
     .panel-tab.active {
         color: #ff8c00;
+        font-weight: 600;
     }
 
     .panel-tab.active::after {
         content: '';
         position: absolute;
-        bottom: -1px;
+        bottom: 0;
         left: 50%;
         transform: translateX(-50%);
-        width: 60%;
-        height: 3px;
+        width: 40%;
+        height: 2px;
         background: linear-gradient(135deg, #ff8c00, #ff7700);
-        border-radius: 3px 3px 0 0;
+        border-radius: 2px 2px 0 0;
     }
 
     .panel-content {
-        max-height: 450px;
+        max-height: 500px;
         overflow-y: auto;
         padding: 0.5rem;
     }
 
     .notification-item {
         display: flex;
-        align-items: flex-start;
-        padding: 1rem;
-        margin: 0.5rem;
-        border-radius: 16px;
-        transition: all 0.3s ease;
+        gap: 12px;
+        padding: 0.75rem 1rem;
+        margin: 0.25rem 0.5rem;
+        border-radius: 12px;
+        transition: all 0.2s ease;
         cursor: pointer;
-        position: relative;
+        border: 1px solid transparent;
+        background: white;
     }
 
     .notification-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        background-color: #f1f5f9;
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    .notification-item.unread:hover {
+        background-color: #ffedd5;  /* Slightly darker orange on hover for unread */
     }
 
     .notification-item.unread {
-        background: linear-gradient(135deg, rgba(255,140,0,0.08), rgba(255,140,0,0.03));
-        border: 1px solid rgba(255,140,0,0.15);
+        background: #fff7ed;  /* Light orange background for unread */
+        border-left: 1px solid #ffd8b3;  /* Lighter orange border */
+        box-shadow: 0 2px 8px rgba(255, 140, 0, 0.1);
+        position: relative;
     }
 
     .notification-item.read {
-        background: #f8fafc;
-        border: 1px solid #f1f5f9;
+        background: #ffffff;
+        border-left: 1px solid #e2e8f0;
+        opacity: 0.8;
+    }
+    
+    .notification-item.read .item-title {
+        color: #64748b;  /* Muted color for read titles */
+        font-weight: 500;
+    }
+    
+    .notification-item.read .item-message {
+        color: #94a3b8;  /* Even more muted for read messages */
     }
 
     .item-icon-wrapper {
         position: relative;
-        margin-right: 1rem;
         flex-shrink: 0;
-    }
-
-    .item-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 14px;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: #f1f5f9;
         display: flex;
         align-items: center;
         justify-content: center;
-        position: relative;
+        color: #64748b;
     }
 
-    .item-icon.booking {
-        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-        color: #16a34a;
+    .item-icon {
+        font-size: 1rem;
     }
 
-    .item-icon.payment {
-        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-        color: #2563eb;
-    }
-
-    .item-icon.alert {
-        background: linear-gradient(135deg, #fee2e2, #fecaca);
-        color: #dc2626;
-    }
-
-    .item-icon.system {
-        background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
-        color: #7c3aed;
-    }
-
-    .item-icon.weather {
-        background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
-        color: #4f46e5;
-    }
-
-    .item-icon.profile {
-        background: linear-gradient(135deg, #fef3c7, #fde68a);
-        color: #d97706;
-    }
+    .item-icon.booking { color: #3b82f6; }
+    .item-icon.payment { color: #10b981; }
+    .item-icon.system { color: #8b5cf6; }
+    .item-icon.alert { color: #f59e0b; }
 
     .unread-dot {
         position: absolute;
-        top: -2px;
-        right: -2px;
-        width: 12px;
-        height: 12px;
-        background: linear-gradient(135deg, #ff8c00, #ff7700);
+        top: -3px;
+        right: -3px;
+        width: 8px;
+        height: 8px;
+        background: #ef4444;
         border-radius: 50%;
         border: 2px solid white;
-        box-shadow: 0 2px 6px rgba(255,140,0,0.4);
     }
 
     .item-content {
@@ -174,18 +164,19 @@
     }
 
     .item-title {
-        font-weight: 700;
-        font-size: 1rem;
+        font-weight: 600;
         color: #1e293b;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.2rem;
+        font-size: 0.85rem;
         line-height: 1.3;
+        transition: color 0.2s ease;
     }
 
     .item-message {
-        font-size: 0.875rem;
+        font-size: 0.8rem;
         color: #64748b;
-        line-height: 1.5;
-        margin-bottom: 0.75rem;
+        line-height: 1.4;
+        margin-bottom: 0.4rem;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -194,34 +185,34 @@
 
     .item-meta {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
+        font-size: 0.7rem;
+        color: #94a3b8;
     }
 
     .item-time {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 0.8rem;
-        color: #94a3b8;
+        gap: 0.25rem;
     }
 
     .item-status {
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
+        font-size: 0.65rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.15rem 0.5rem;
+        border-radius: 4px;
     }
 
     .status-new {
-        background: linear-gradient(135deg, #ff8c00, #ff7700);
-        color: white;
-        box-shadow: 0 2px 6px rgba(255,140,0,0.3);
+        background: #fffbeb;
+        color: #d97706;
     }
 
     .status-read {
-        background: #f1f5f9;
-        color: #64748b;
+        color: #94a3b8;
     }
 
     .panel-footer {
@@ -350,14 +341,12 @@
 <div class="notification-panel">
     <div class="panel-header">
         <h1 class="panel-title">Notifikasi</h1>
-        <div class="notification-badge" id="unreadBadge">
-            {{ $notifications->where('is_read', false)->count() }} baru
-        </div>
     </div>
     
     <div class="panel-tabs">
         <button class="panel-tab active" data-tab="all">Semua</button>
         <button class="panel-tab" data-tab="unread">Belum Dibaca</button>
+        <button class="panel-tab" data-tab="read">Sudah Dibaca</button>
     </div>
     
     <div class="panel-content" id="notificationContent">
@@ -401,13 +390,9 @@
     </div>
     
     <div class="panel-footer">
-        <button class="footer-btn btn-secondary" id="markAllRead">
+        <button class="footer-btn btn-secondary" id="markAllRead" style="width: 100%;">
             <i class="fas fa-check"></i>
-            Baca Semua
-        </button>
-        <button class="footer-btn btn-primary" id="viewAll">
-            <i class="fas fa-external-link-alt"></i>
-            Lihat Semua
+            Tandai Sudah Dibaca Semua
         </button>
     </div>
 </div>
@@ -493,10 +478,14 @@
 
     function renderNotifications(filter = 'all') {
         const container = document.getElementById('notificationContent');
-        let filteredNotifications = notifications;
+        let filteredNotifications = [];
 
         if (filter === 'unread') {
             filteredNotifications = notifications.filter(n => n.unread);
+        } else if (filter === 'read') {
+            filteredNotifications = notifications.filter(n => !n.unread);
+        } else {
+            filteredNotifications = [...notifications];
         }
 
         if (filteredNotifications.length === 0) {
@@ -581,10 +570,6 @@
         updateBadge();
     });
 
-    // View all notifications
-    document.getElementById('viewAll').addEventListener('click', () => {
-        alert('Redirect ke halaman notifikasi lengkap');
-    });
 
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
