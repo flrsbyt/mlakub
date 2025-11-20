@@ -73,7 +73,10 @@ class AdminController extends Controller
     // 🔹 Manajemen User
     public function users()
     {
-        $users = User::latest()->paginate(10);
+        // Gunakan tanggal_daftar (bukan created_at) dan fallback ke id_users
+        $users = User::orderByRaw("CASE WHEN tanggal_daftar IS NULL OR tanggal_daftar = '' THEN 1 ELSE 0 END, tanggal_daftar DESC")
+            ->orderByDesc('id_users')
+            ->paginate(10);
         return view('admin.users.index', compact('users'));
     }
 
@@ -150,15 +153,16 @@ class AdminController extends Controller
             ->take(10)
             ->get()
             ->map(function ($notification) {
+                $createdAt = $notification->created_at;
                 return [
                     'id' => $notification->id,
                     'title' => $notification->title,
                     'message' => $notification->message,
                     'type' => $notification->type ?? 'system',
                     'icon' => $notification->icon ?? 'fas fa-bell',
-                    'is_read' => $notification->is_read,
-                    'time' => $notification->created_at->diffForHumans(),
-                    'created_at' => $notification->created_at->format('Y-m-d H:i:s')
+                    'is_read' => (bool) $notification->is_read,
+                    'time' => $createdAt ? $createdAt->diffForHumans() : '',
+                    'created_at' => $createdAt ? $createdAt->format('Y-m-d H:i:s') : null
                 ];
             });
 

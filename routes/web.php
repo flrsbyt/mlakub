@@ -72,38 +72,65 @@ Route::middleware(['auth'])
     });
 
 Route::get('/', function () {
+    if (Auth::check() && Auth::user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
     return view('home');
 })->name('home');
 
 Route::get('/paket-trip', function () {
+    if (Auth::check() && Auth::user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
     return view('paket-trip');
 })->name('paket-trip');
 
 Route::get('/opentrip/{tripName?}', function () {
+    if (Auth::check() && Auth::user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
     return view('opentrip');
 })->name('opentrip');
 
 Route::get('/dailytrip', function () {
+    if (Auth::check() && Auth::user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
     return view('dailytrip');
 })->name('dailytrip');
 
 Route::get('/travelbromo', function () {
+    if (Auth::check() && Auth::user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
     return view('travelbromo');
 })->name('travelbromo');
 
 Route::get('/paketwna', function () {
+    if (Auth::check() && Auth::user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
     return view('paketwna');
 })->name('paketwna');
     
 Route::get('/cara-pemesanan', function () {
+    if (Auth::check() && Auth::user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
     return view('carapemesanan');
 })->name('cara-pemesanan');
 
 Route::get('/galeri', function () {
+    if (Auth::check() && Auth::user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
     return view('galeri');
 })->name('galeri');
 
 Route::get('/kontak', function () {
+    if (Auth::check() && Auth::user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
     return view('kontakweb');
 })->name('kontak');
 

@@ -2061,11 +2061,41 @@
                 </a>
                 <nav>
                     <ul class="nav-menu">
-                        <li><a href="{{ route('home') }}" >Beranda</a></li>
-                        <li><a href="{{ route('paket-trip') }}" >Paket Trip</a></li>
-                        <li><a href="{{ route('cara-pemesanan') }}" >Cara Pemesanan</a></li>
-                        <li><a href="{{ route('galeri') }}" class="active">Galeri</a></li>
-                        <li><a href="{{ route('kontak') }}">Kontak</a></li>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}">Beranda</a>
+                            @else
+                                <a href="{{ route('home') }}">Beranda</a>
+                            @endif
+                        </li>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}">Paket Trip</a>
+                            @else
+                                <a href="{{ route('paket-trip') }}">Paket Trip</a>
+                            @endif
+                        </li>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}">Cara Pemesanan</a>
+                            @else
+                                <a href="{{ route('cara-pemesanan') }}">Cara Pemesanan</a>
+                            @endif
+                        </li>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}">Galeri</a>
+                            @else
+                                <a href="{{ route('galeri') }}" class="active">Galeri</a>
+                            @endif
+                        </li>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}">Kontak</a>
+                            @else
+                                <a href="{{ route('kontak') }}">Kontak</a>
+                            @endif
+                        </li>
                     </ul>
                 </nav>
                 <div class="nav-actions">

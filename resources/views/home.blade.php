@@ -2272,48 +2272,87 @@
                 </a>
                 <nav>
                     <ul class="nav-menu">
-                        <li><a href="{{ route('home') }}" class="active">Beranda</a></li>
-                        <li><a href="{{ route('paket-trip') }}" >Paket Trip</a></li>
-                        <li><a href="{{ route('cara-pemesanan') }}">Cara Pemesanan</a></li>
-                        <li><a href="{{ route('galeri') }}">Galeri</a></li>
-                        <li><a href="{{ route('kontak') }}">Kontak</a></li>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}" class="active">Beranda</a>
+                            @else
+                                <a href="{{ route('home') }}" class="active">Beranda</a>
+                            @endif
+                        </li>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}">Paket Trip</a>
+                            @else
+                                <a href="{{ route('paket-trip') }}">Paket Trip</a>
+                            @endif
+                        </li>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}">Cara Pemesanan</a>
+                            @else
+                                <a href="{{ route('cara-pemesanan') }}">Cara Pemesanan</a>
+                            @endif
+                        </li>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}">Galeri</a>
+                            @else
+                                <a href="{{ route('galeri') }}">Galeri</a>
+                            @endif
+                        </li>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}">Kontak</a>
+                            @else
+                                <a href="{{ route('kontak') }}">Kontak</a>
+                            @endif
+                        </li>
                     </ul>
                 </nav>
                 <div class="nav-actions">
-                    <div class="search-box">
-                        <input type="text" placeholder="Cari destinasi..." id="searchInput">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    @if(Auth::check())
-                    <div class="profile-dropdown">
-                        <button class="profile-btn" onclick="toggleProfileDropdown()">
-                            <img src="{{ Auth::user()->avatar ?? asset('images/profil.png') }}" alt="Profile" class="profile-avatar">
-                            <span class="profile-name">{{ Auth::user()->username ?? 'Profil' }}</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="dropdown-menu" id="profileDropdown">
-                            <a href="{{ route('profil') }}" class="dropdown-item">
-                                <i class="fas fa-user"></i>
-                                Profil Saya
-                            </a>
-                            <a href="{{ route('riwayatpesan') }}" class="dropdown-item">
-                                <i class="fas fa-history"></i>
-                                Riwayat Pemesanan
-                            </a>
-                            <a href="{{ route('riwayattesti') }}" class="dropdown-item">
-                                <i class="fas fa-star"></i>
-                                Riwayat Testimoni
-                            </a>
-                            <hr class="dropdown-divider">
-                            <a href="#" class="dropdown-item" onclick="showLogoutModal()">
-                                <i class="fas fa-sign-out-alt"></i>
-                                Logout
-                            </a>
-                        </div>
-                    </div>
-                    @else
-                    <button class="login-btn" onclick="document.getElementById('loginModal').style.display='block'">Login</button>
-                    @endif
+          <div class="search-box">
+            <input type="text" placeholder="Cari destinasi..." id="searchInput">
+            <i class="fas fa-search"></i>
+          </div>
+          @if(Auth::check())
+          <div class="profile-dropdown">
+            <button class="profile-btn" onclick="toggleProfileDropdown()">
+              <img src="{{ Auth::user()->avatar ?? asset('images/profil.png') }}" alt="Profile" class="profile-avatar">
+              <span class="profile-name">{{ Auth::user()->username ?? 'Profil' }}</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu" id="profileDropdown">
+              @if(Auth::user()->role === 'admin')
+              <a href="{{ route('admin.dashboard') }}" class="dropdown-item">
+                <i class="fas fa-gauge"></i>
+                Dashboard Admin
+              </a>
+              <hr class="dropdown-divider">
+              @else
+              <a href="{{ route('profil') }}" class="dropdown-item">
+                <i class="fas fa-user"></i>
+                Profil Saya
+              </a>
+              <a href="{{ route('riwayatpesan') }}" class="dropdown-item">
+                <i class="fas fa-history"></i>
+                Riwayat Pemesanan
+              </a>
+              <a href="{{ route('riwayattesti') }}" class="dropdown-item">
+                <i class="fas fa-star"></i>
+                Riwayat Testimoni
+              </a>
+              <hr class="dropdown-divider">
+              @endif
+              <a href="#" class="dropdown-item" onclick="showLogoutModal()">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+              </a>
+            </div>
+          </div>
+          @else
+          <button class="login-btn" onclick="document.getElementById('loginModal').style.display='block'">Login</button>
+          @endif
+        </div>
                 </div>
             </div>
         </header>

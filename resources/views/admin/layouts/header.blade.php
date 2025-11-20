@@ -44,6 +44,42 @@
         color: #9ca3af;
     }
 
+    /* Search Suggestions */
+    .search-suggestions {
+        position: absolute;
+        top: 44px;
+        left: 0;
+        right: 0;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+        overflow: hidden;
+        z-index: 1100;
+        display: none;
+        max-height: 320px;
+        overflow-y: auto;
+    }
+
+    .search-suggestions.show { display: block; }
+
+    .search-suggestion-item {
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        color: #374151;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .search-suggestion-item:hover,
+    .search-suggestion-item.active { background: #f9fafb; }
+
+    .search-suggestion-icon { width: 18px; text-align: center; color: #f59e0b; }
+    .search-suggestion-item.empty { color: #9ca3af; cursor: default; }
+
     .search-icon {
         position: absolute;
         left: 12px;
@@ -529,6 +565,7 @@
     <div class="search-container">
         <input type="text" class="search-box" placeholder="Cari sesuatu...">
         <span class="search-icon">🔍</span>
+        <div id="adminSearchSuggestions" class="search-suggestions"></div>
     </div>
     
     <div class="header-actions">
@@ -597,12 +634,187 @@
 <script>
     // Fungsi pencarian
     const searchBox = document.querySelector('.search-box');
+    const suggestionsEl = document.getElementById('adminSearchSuggestions');
+    let menuIndex = [];
+    let activeIndex = -1;
+
     searchBox.addEventListener('focus', function() {
         this.style.transform = 'scale(1.02)';
+        if (this.value) searchMenu(this.value);
     });
 
     searchBox.addEventListener('blur', function() {
         this.style.transform = 'scale(1)';
+        setTimeout(()=>{ suggestionsEl.classList.remove('show'); suggestionsEl.innerHTML=''; }, 120);
+    });
+
+    function buildMenuIndex() {
+        const items = document.querySelectorAll('#sidebar .menu-item');
+        const sidebarIndex = Array.from(items).map(el => ({
+            el,
+            text: (el.textContent || '').trim().toLowerCase(),
+            href: el.getAttribute('href') || '#'
+        }));
+        const extraIndex = [
+            { text: 'dashboard', href: '{{ route('admin.dashboard') }}' },
+            { text: 'paket trip', href: '{{ route('admin.paket-trip') }}' },
+            { text: 'pemesanan', href: '{{ route('admin.pesan-paket') }}' },
+            { text: 'pilihan paket', href: '{{ route('admin.pilihan-paket') }}' },
+            { text: 'galeri', href: '{{ route('admin.galery.admin') }}' },
+            { text: 'cara pemesanan', href: '{{ route('admin.cara-pemesanan') }}' },
+            { text: 'kontak', href: '{{ route('admin.kontak') }}' },
+            { text: 'users', href: '{{ route('admin.users.index') }}' },
+            { text: 'tambah user', href: '{{ route('admin.users.create') }}' },
+            { text: 'notifikasi', href: '{{ route('admin.notifications') }}' },
+            { text: 'profile', href: '{{ route('admin.profile') }}' }
+        ];
+        const map = new Map();
+        [...sidebarIndex, ...extraIndex].forEach(it => { if (it.href && !map.has(it.href)) map.set(it.href, it); });
+        menuIndex = Array.from(map.values());
+    }
+
+    function renderSuggestions(list) {
+        if (!list.length) {
+            suggestionsEl.innerHTML = `
+                <div class="search-suggestion-item empty">
+                    <span class="search-suggestion-icon">🙅‍♂️</span>
+                    <span>Tidak tersedia</span>
+                </div>
+            `;
+            suggestionsEl.classList.add('show');
+            activeIndex = -1;
+            return;
+        }
+        suggestionsEl.innerHTML = list.map((it, i) => `
+            <div class="search-suggestion-item ${i===activeIndex?'active':''}" data-index="${i}" data-href="${it.href}">
+                <span class="search-suggestion-icon">${getIconForText(it.text)}</span>
+                <span>${escapeHtml(capitalizeWords(it.text))}</span>
+            </div>
+        `).join('');
+        suggestionsEl.classList.add('show');
+    }
+
+    function searchMenu(q) {
+        if (!menuIndex.length) buildMenuIndex();
+        const query = (q||'').trim().toLowerCase();
+        if (!query) { renderSuggestions([]); resetSidebarFilter(); return; }
+        const results = menuIndex
+            .map(it => ({ it, score: scoreMatch(it.text, query) }))
+            .filter(x => x.score > 0)
+            .sort((a,b) => b.score - a.score)
+            .slice(0, 8)
+            .map(x => x.it);
+        activeIndex = results.length ? 0 : -1;
+        renderSuggestions(results);
+        applySidebarFilter(query);
+    }
+
+    function navigateToActive() {
+        const active = suggestionsEl.querySelector('.search-suggestion-item.active');
+        if (active) {
+            const href = active.getAttribute('data-href');
+            if (href) window.location.href = href;
+        }
+    }
+
+    function moveActive(delta) {
+        const items = suggestionsEl.querySelectorAll('.search-suggestion-item');
+        if (!items.length) return;
+        activeIndex = (activeIndex + delta + items.length) % items.length;
+        items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+    }
+
+    function scoreMatch(text, query) {
+        if (text.includes(query)) return 2 + (text.startsWith(query) ? 1 : 0);
+        const words = text.split(/\s+/);
+        if (words.some(w => w.startsWith(query))) return 1.5;
+        return 0;
+    }
+
+    function getIconForText(text) {
+        if (text.includes('dashboard')) return '📊';
+        if (text.includes('paket')) return '📦';
+        if (text.includes('pesan') || text.includes('order')) return '🛒';
+        if (text.includes('galeri') || text.includes('gambar')) return '🖼️';
+        if (text.includes('cara') || text.includes('panduan')) return '📝';
+        if (text.includes('kontak')) return '☎️';
+        if (text.includes('profile') || text.includes('profil')) return '👤';
+        return '🔎';
+    }
+
+    function escapeHtml(s){ return s.replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",
+        ">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+    function capitalizeWords(s){ return s.replace(/\b\w/g, c=>c.toUpperCase()); }
+
+    // ===== Sidebar Filter/Highlight =====
+    function applySidebarFilter(query){
+        const items = document.querySelectorAll('#sidebar .menu-item');
+        items.forEach(link => {
+            const labelEl = link.querySelector('.menu-item-content');
+            const rawText = (labelEl ? labelEl.textContent : link.textContent) || '';
+            const text = rawText.trim();
+            const lower = text.toLowerCase();
+            const match = lower.includes(query);
+            // Toggle visibility
+            link.style.display = match ? '' : 'none';
+            // Highlight
+            if (labelEl){
+                labelEl.setAttribute('data-original', labelEl.getAttribute('data-original') || labelEl.innerHTML);
+                if (match){
+                    labelEl.innerHTML = highlightSidebar(labelEl.getAttribute('data-original'), query);
+                } else {
+                    labelEl.innerHTML = labelEl.getAttribute('data-original');
+                }
+            }
+        });
+        // Pastikan judul section tetap terlihat
+        const titles = document.querySelectorAll('#sidebar .menu-title');
+        titles.forEach(t => t.style.display = '');
+    }
+
+    function resetSidebarFilter(){
+        const items = document.querySelectorAll('#sidebar .menu-item');
+        items.forEach(link => {
+            link.style.display = '';
+            const labelEl = link.querySelector('.menu-item-content');
+            if (labelEl && labelEl.getAttribute('data-original')){
+                labelEl.innerHTML = labelEl.getAttribute('data-original');
+            }
+        });
+        const titles = document.querySelectorAll('#sidebar .menu-title');
+        titles.forEach(t => t.style.display = '');
+    }
+
+    function highlightSidebar(html, query){
+        // Strip tags for matching, but we only wrap text occurrences in a safe way
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        const walker = document.createTreeWalker(temp, NodeFilter.SHOW_TEXT, null, false);
+        const re = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'ig');
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(node => {
+            if (re.test(node.nodeValue)){
+                const span = document.createElement('span');
+                span.innerHTML = node.nodeValue.replace(re, m => `<mark style="background: rgba(245,158,11,0.25); padding:0 2px; border-radius:3px;">${m}</mark>`);
+                node.parentNode.replaceChild(span, node);
+            }
+        });
+        return temp.innerHTML;
+    }
+
+    searchBox.addEventListener('input', (e) => searchMenu(e.target.value));
+    searchBox.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); moveActive(1); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); moveActive(-1); }
+        else if (e.key === 'Enter') { e.preventDefault(); navigateToActive(); }
+        else if (e.key === 'Escape') { suggestionsEl.classList.remove('show'); suggestionsEl.innerHTML=''; }
+    });
+    suggestionsEl.addEventListener('mousedown', (e) => {
+        const item = e.target.closest('.search-suggestion-item');
+        if (!item || item.classList.contains('empty')) return;
+        const href = item.getAttribute('data-href');
+        if (href) window.location.href = href;
     });
 
     // Fungsi notifikasi

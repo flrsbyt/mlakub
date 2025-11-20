@@ -2116,12 +2116,43 @@
                 </a>
                 <nav>
                     <ul class="nav-menu">
-                        <li><a href="{{ route('home') }}" >Beranda</a></li>
-                        <li><a href="{{ route('paket-trip') }}" >Paket Trip</a></li>
-                        <li><a href="{{ route('cara-pemesanan') }}" class="active">Cara Pemesanan</a></li>
-                        <li><a href="{{ route('galeri') }}">Galeri</a></li>
-                        <li><a href="{{ route('kontak') }}">Kontak</a></li>
-                    </ul>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}">Beranda</a>
+                            @else
+                                <a href="{{ route('home') }}">Beranda</a>
+                            @endif
+                        </li>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}">Paket Trip</a>
+                            @else
+                                <a href="{{ route('paket-trip') }}">Paket Trip</a>
+                            @endif
+                        </li>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}" class="active">Cara Pemesanan</a>
+                            @else
+                                <a href="{{ route('cara-pemesanan') }}" class="active">Cara Pemesanan</a>
+                            @endif
+                        </li>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}">Galeri</a>
+                            @else
+                                <a href="{{ route('galeri') }}">Galeri</a>
+                            @endif
+                        </li>
+                        <li>
+                            @if(Auth::check() && Auth::user()->role === 'admin')
+                                <a href="{{ route('admin.dashboard') }}">Kontak</a>
+                            @else
+                                <a href="{{ route('kontak') }}">Kontak</a>
+                            @endif
+                        </li>
+                
+                </ul>
                 </nav>
                 <div class="nav-actions">
                     <div class="search-box">
@@ -2136,6 +2167,13 @@
                             <i class="fas fa-chevron-down"></i>
                         </button>
                         <div class="dropdown-menu" id="profileDropdown">
+                            @if(Auth::user()->role === 'admin')
+                            <a href="{{ route('admin.dashboard') }}" class="dropdown-item">
+                                <i class="fas fa-gauge"></i>
+                                Dashboard Admin
+                            </a>
+                            <hr class="dropdown-divider">
+                            @else
                             <a href="{{ route('profil') }}" class="dropdown-item">
                                 <i class="fas fa-user"></i>
                                 Profil Saya
@@ -2149,6 +2187,7 @@
                                 Riwayat Testimoni
                             </a>
                             <hr class="dropdown-divider">
+                            @endif
                             <a href="#" class="dropdown-item" onclick="showLogoutModal()">
                                 <i class="fas fa-sign-out-alt"></i>
                                 Logout
