@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Notification;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
@@ -19,7 +21,15 @@ class User extends Authenticatable
         'profil',
         'tanggal_daftar',
         'role',
+        'profile_photo',
     ];
 
     protected $hidden = ['password'];
+
+    // Relasi dengan notifications
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class, 'notifiable_id')
+            ->where('notifiable_type', static::class);
+    }
 }

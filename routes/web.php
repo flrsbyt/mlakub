@@ -65,6 +65,10 @@ Route::middleware(['auth'])
 
         // Notifications
         Route::get('/notifications', [AdminController::class, 'notifications'])->name('notifications');
+        Route::get('/api/notifications', [AdminController::class, 'getNotifications'])->name('api.notifications');
+        Route::post('/api/notifications/{id}/read', [AdminController::class, 'markAsRead']);
+        Route::post('/api/notifications/read-all', [AdminController::class, 'markAllAsRead']);
+        Route::get('/demo-booking', [AdminController::class, 'demoBookingNotification'])->name('demo.booking');
     });
 
 Route::get('/', function () {

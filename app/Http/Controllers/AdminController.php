@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
@@ -84,14 +85,14 @@ class AdminController extends Controller
     public function storeUser(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string|max:255',
+            'username' => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'role'     => 'required|in:admin,user'
         ]);
 
         User::create([
-            'name'     => $request->name,
+            'username' => $request->username,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
             'role'     => $request->role
@@ -111,15 +112,15 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
         
         $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $id,
-            'role'  => 'required|in:admin,user'
+            'username' => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users,email,' . $user->id_users . ',id_users',
+            'role'     => 'required|in:admin,user'
         ]);
 
         $user->update([
-            'name'  => $request->name,
-            'email' => $request->email,
-            'role'  => $request->role
+            'username' => $request->username,
+            'email'    => $request->email,
+            'role'     => $request->role
         ]);
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil diupdate!');
@@ -141,18 +142,139 @@ class AdminController extends Controller
     }
 
     // 🔹 Notifications
+    public function getNotifications()
+    {
+        $user = Auth::user();
+        $notifications = $user->notifications()
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get()
+            ->map(function ($notification) {
+                return [
+                    'id' => $notification->id,
+                    'title' => $notification->title,
+                    'message' => $notification->message,
+                    'type' => $notification->type ?? 'system',
+                    'icon' => $notification->icon ?? 'fas fa-bell',
+                    'is_read' => $notification->is_read,
+                    'time' => $notification->created_at->diffForHumans(),
+                    'created_at' => $notification->created_at->format('Y-m-d H:i:s')
+                ];
+            });
+
+        $unreadCount = $user->notifications()->where('is_read', false)->count();
+
+        return response()->json([
+            'notifications' => $notifications,
+            'unread_count' => $unreadCount
+        ]);
+    }
+
+    public function markAsRead($id)
+    {
+        $user = Auth::user();
+        $notification = $user->notifications()->find($id);
+        
+        if ($notification) {
+            $notification->is_read = true;
+            $notification->save();
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function markAllAsRead()
+    {
+        $user = Auth::user();
+        $user->notifications()->where('is_read', false)->update(['is_read' => true]);
+
+        return response()->json(['success' => true]);
+    }
+
     public function notifications()
     {
-        return view('admin.notifications');
+        $user = Auth::user();
+        $notifications = $user->notifications()->orderBy('created_at', 'desc')->paginate(20);
+        
+        // Mark all as read
+        $user->notifications()->where('is_read', false)->update(['is_read' => true]);
+        
+        return view('admin.notifications', compact('notifications'));
+    }
+
+    // API untuk real-time notifications
+    public function getNotificationsRealtime()
+    {
+        $user = Auth::user();
+        $unreadCount = $user->notifications()->where('is_read', false)->count();
+        $latestNotifications = $user->notifications()
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+        
+        return response()->json([
+            'unread_count' => $unreadCount,
+            'notifications' => $latestNotifications
+        ]);
+    }
+
+    // Demo booking notification
+    public function demoBookingNotification()
+    {
+        $user = Auth::user();
+        
+        // Simulasi data booking
+        $bookingData = [
+            'customer_name' => 'Andi Wijaya',
+            'package' => 'Bromo Sunrise Tour',
+            'date' => now()->addDays(3)->format('d M Y'),
+            'price' => 'Rp 450.000',
+            'phone' => '0812-3456-7890'
+        ];
+        
+        // Buat notifikasi booking
+        $this->createNotification(
+            'booking',
+            'Pemesanan Baru - ' . $bookingData['package'],
+            "{$bookingData['customer_name']} melakukan booking untuk {$bookingData['package']} tanggal {$bookingData['date']}. Total: {$bookingData['price']}",
+            'fas fa-calendar-check',
+            'booking',
+            $bookingData
+        );
+        
+        return redirect()->route('admin.dashboard')->with('success', 'Demo notifikasi booking berhasil dibuat!');
+    }
+
+    // Create notification helper
+    private function createNotification($type, $title, $message, $icon = null, $color = 'info', $data = [])
+    {
+        $user = Auth::user();
+        $user->notifications()->create([
+            'type' => $type,
+            'title' => $title,
+            'message' => $message,
+            'icon' => $icon,
+            'color' => $color,
+            'is_read' => false,
+            'notifiable_type' => User::class,
+            'notifiable_id' => $user->id_users,
+            'data' => $data
+        ]);
     }
 
     public function updateProfile(Request $request)
     {
+        // Debug: Log semua request data
+        \Log::info('UpdateProfile method called');
+        \Log::info('Request data: ' . json_encode($request->all()));
+        \Log::info('Has file: ' . ($request->hasFile('profile_photo') ? 'YES' : 'NO'));
+        
         $user = Auth::user();
+        \Log::info('Current user ID: ' . $user->id_users);
         
         $request->validate([
             'name'              => 'required|string|max:255',
-            'email'             => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'email'             => 'required|string|email|max:255|unique:users,email,' . $user->id_users . ',id_users',
             'current_password'  => 'nullable|required_with:new_password',
             'new_password'      => 'nullable|min:8|confirmed',
             'profile_photo'     => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
@@ -160,6 +282,9 @@ class AdminController extends Controller
 
         // Handle profile photo upload
         if ($request->hasFile('profile_photo')) {
+            // Debug: Log file upload
+            \Log::info('Profile photo uploaded: ' . $request->file('profile_photo')->getClientOriginalName());
+            
             // Delete old photo if exists
             if ($user->profile_photo) {
                 $oldPhotoPath = public_path('images/profile_photos/' . basename($user->profile_photo));
@@ -171,26 +296,51 @@ class AdminController extends Controller
             // Store new photo
             $file = $request->file('profile_photo');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('images/profile_photos'), $filename);
-            $user->profile_photo = 'profile_photos/' . $filename;
+            
+            try {
+                $file->move(public_path('images/profile_photos'), $filename);
+                $profilePhotoPath = 'profile_photos/' . $filename;
+                \Log::info('Profile photo saved to: ' . $profilePhotoPath);
+            } catch (\Exception $e) {
+                \Log::error('Failed to save profile photo: ' . $e->getMessage());
+                return back()->withErrors(['profile_photo' => 'Gagal mengupload foto: ' . $e->getMessage()]);
+            }
+        } else {
+            $profilePhotoPath = $user->profile_photo;
         }
 
-        // Update nama & email
-        $user->name  = $request->name;
-        $user->email = $request->email;
+        // Update all fields at once
+        $updateData = [
+            'username' => $request->name,  // Map name field to username
+            'email'    => $request->email,
+        ];
 
-        // Jika ada password baru
+        // Add profile photo if updated
+        if (isset($profilePhotoPath) && $profilePhotoPath !== $user->profile_photo) {
+            $updateData['profile_photo'] = $profilePhotoPath;
+        }
+
+        // Add password if updated
         if ($request->filled('new_password')) {
             if (!Hash::check($request->current_password, $user->password)) {
                 return back()->withErrors(['current_password' => 'Password saat ini tidak sesuai']);
             }
-            $user->password = Hash::make($request->new_password);
+            $updateData['password'] = Hash::make($request->new_password);
         }
 
-        $user->save();
+        $user->update($updateData);
 
         // Refresh user data in session
         auth()->setUser($user->fresh());
+
+        // Create notification untuk profile update
+        $this->createNotification(
+            'profile',
+            'Profil Diperbarui',
+            'Profil admin Anda berhasil diperbarui',
+            'fas fa-user-edit',
+            'success'
+        );
 
         return redirect()->route('admin.profile')->with('success', 'Profil berhasil diupdate!');
     }

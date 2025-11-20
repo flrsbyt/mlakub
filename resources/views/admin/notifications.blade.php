@@ -146,6 +146,16 @@
         color: #7c3aed;
     }
 
+    .item-icon.weather {
+        background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+        color: #4f46e5;
+    }
+
+    .item-icon.profile {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        color: #d97706;
+    }
+
     .unread-dot {
         position: absolute;
         top: -2px;
@@ -340,7 +350,9 @@
 <div class="notification-panel">
     <div class="panel-header">
         <h1 class="panel-title">Notifikasi</h1>
-        <div class="notification-badge" id="unreadBadge">5 baru</div>
+        <div class="notification-badge" id="unreadBadge">
+            {{ $notifications->where('is_read', false)->count() }} baru
+        </div>
     </div>
     
     <div class="panel-tabs">
@@ -349,7 +361,43 @@
     </div>
     
     <div class="panel-content" id="notificationContent">
-        <!-- Notifications will be rendered here -->
+        @if($notifications->count() > 0)
+            @foreach($notifications as $notification)
+                <div class="notification-item {{ !$notification->is_read ? 'unread' : 'read' }}" data-id="{{ $notification->id }}">
+                    <div class="item-icon {{ $notification->type }}">
+                        @if($notification->icon)
+                            <i class="{{ $notification->icon }}"></i>
+                        @else
+                            <i class="fas fa-bell"></i>
+                        @endif
+                        @if(!$notification->is_read)
+                            <div class="unread-dot"></div>
+                        @endif
+                    </div>
+                    <div class="item-content">
+                        <div class="item-title">{{ $notification->title }}</div>
+                        <div class="item-message">{{ $notification->message }}</div>
+                        <div class="item-meta">
+                            <div class="item-time">
+                                <i class="fas fa-clock"></i>
+                                {{ $notification->created_at->diffForHumans() }}
+                            </div>
+                            <div class="item-status {{ !$notification->is_read ? 'status-new' : 'status-read' }}">
+                                {{ !$notification->is_read ? 'Baru' : 'Dibaca' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        @else
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-bell-slash"></i>
+                </div>
+                <div class="empty-title">Tidak Ada Notifikasi</div>
+                <div class="empty-message">Belum ada notifikasi baru untuk saat ini.</div>
+            </div>
+        @endif
     </div>
     
     <div class="panel-footer">
