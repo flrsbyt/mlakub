@@ -26,7 +26,7 @@
     </a>
     
     <!-- Pemesanan -->
-    <a href="{{ route('admin.pesan-paket') }}" class="menu-item {{ request()->routeIs('admin.pesan-paket*') ? 'active' : '' }}">
+    <a href="{{ route('admin.pemesanan.index') }}" class="menu-item {{ request()->routeIs('admin.pemesanan.*') ? 'active' : '' }}">
       <div class="menu-item-content">
         <i class="menu-icon fas fa-shopping-cart"></i>
         Pemesanan

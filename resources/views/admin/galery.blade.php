@@ -739,22 +739,35 @@
                     <i class="fa-check"></i>
                     Pilih Multiple
                 </button>
-                <button class="btn btn-primary" onclick="showUploadModal()">
+                <a class="btn btn-primary" href="#upload-form">
                     <i class="fa-plus"></i>
                     Upload Media
-                </button>
+                </a>
             </div>
         </div>
     </div>
+
+    @if (session('success'))
+        <div style="background:#d4edda;color:#155724;border:1px solid #c3e6cb;padding:12px 16px;border-radius:8px;margin-bottom:16px;">
+            {{ session('success') }}
+        </div>
+    @endif
 
         <!-- Statistics -->
         <div class="stats-section">
             <div class="stat-card">
                 <div class="stat-header">
                     <div>
-                        <div class="stat-number">247</div>
+                        <div class="stat-number">{{ $galleryStats['total'] ?? 0 }}</div>
                         <div class="stat-label">Total Media</div>
-                        <div class="stat-change">↗ +12 bulan ini</div>
+                        <div class="stat-change">
+                            @php($delta = $galleryStats['total_this_month'] ?? 0)
+                            @if(($delta) > 0)
+                                ↗ +{{ $delta }} bulan ini
+                            @else
+                                —
+                            @endif
+                        </div>
                     </div>
                     <div class="stat-icon">
                         <i class="fa-images"></i>
@@ -765,9 +778,16 @@
             <div class="stat-card">
                 <div class="stat-header">
                     <div>
-                        <div class="stat-number">189</div>
+                        <div class="stat-number">{{ $galleryStats['photos'] ?? 0 }}</div>
                         <div class="stat-label">Foto</div>
-                        <div class="stat-change">↗ +8 bulan ini</div>
+                        <div class="stat-change">
+                            @php($delta = $galleryStats['photos_this_month'] ?? 0)
+                            @if(($delta) > 0)
+                                ↗ +{{ $delta }} bulan ini
+                            @else
+                                —
+                            @endif
+                        </div>
                     </div>
                     <div class="stat-icon">
                         📸
@@ -778,9 +798,16 @@
             <div class="stat-card">
                 <div class="stat-header">
                     <div>
-                        <div class="stat-number">58</div>
+                        <div class="stat-number">{{ $galleryStats['videos'] ?? 0 }}</div>
                         <div class="stat-label">Video</div>
-                        <div class="stat-change">↗ +4 bulan ini</div>
+                        <div class="stat-change">
+                            @php($delta = $galleryStats['videos_this_month'] ?? 0)
+                            @if(($delta) > 0)
+                                ↗ +{{ $delta }} bulan ini
+                            @else
+                                —
+                            @endif
+                        </div>
                     </div>
                     <div class="stat-icon">
                         <i class="fa-video"></i>
@@ -790,12 +817,42 @@
             
         </div>
 
-        <!-- Upload Zone -->
-        <div class="upload-zone" onclick="document.getElementById('fileInput').click()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-            <input type="file" id="fileInput" class="hidden-input" multiple accept="image/*,video/*" onchange="handleFileSelect(event)">
-            <div class="upload-icon">📤</div>
-            <div class="upload-text">Drag & Drop atau Klik untuk Upload</div>
-            <div class="upload-subtext">Mendukung JPG, PNG, MP4, MOV (Maks 10MB per file)</div>
+        <!-- Upload Form -->
+        <div id="upload-form" class="upload-zone">
+            <form method="POST" action="{{ route('admin.galery.store') }}" enctype="multipart/form-data" style="display:grid;gap:12px;max-width:720px;margin:0 auto;">
+                @csrf
+                <div class="upload-icon">📤</div>
+                <div class="upload-text">Unggah Media Baru</div>
+                <div class="upload-subtext">Mendukung JPG, PNG (maks 10MB)</div>
+                <div class="form-group">
+                    <label class="form-label">Judul</label>
+                    <input type="text" name="title" class="form-control" placeholder="Judul media" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Deskripsi</label>
+                    <textarea name="description" class="form-control" placeholder="Deskripsi singkat (opsional)" rows="3"></textarea>
+                </div>
+                <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <label class="form-label">Kategori</label>
+                        <input type="text" name="category" class="form-control" placeholder="Misal: bromo">
+                    </div>
+                    <div>
+                        <label class="form-label">Tipe</label>
+                        <select name="type" class="form-control">
+                            <option value="image">Foto</option>
+                            <option value="video" disabled>Video (belum didukung)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Gambar</label>
+                    <input type="file" name="image" class="form-control" accept="image/*" required>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
         </div>
 
         <!-- Bulk Actions -->
@@ -863,82 +920,118 @@
 
         <!-- Gallery Grid -->
         <div class="gallery-grid" id="galleryGrid">
-            <div class="gallery-item" data-category="bromo" data-type="image">
-                <div class="gallery-image">
-                    <div class="image-placeholder">🏔️</div>
-                    <div class="gallery-overlay">
-                        <button class="overlay-btn" onclick="viewMedia(1)">
-                            <i class="fa-eye"></i>
-                        </button>
-                        <button class="overlay-btn" onclick="downloadMedia(1)">
-                            <i class="fa-download"></i>
-                        </button>
-                        <button class="overlay-btn" onclick="editMedia(1)">
-                            <i class="fa-edit"></i>
-                        </button>
-                        <button class="overlay-btn" onclick="deleteMedia(1)">
-                            <i class="fa-trash"></i>
-                        </button>
+            @isset($galleries)
+                @forelse($galleries as $item)
+                    <div class="gallery-item" data-category="{{ $item->category }}" data-type="{{ $item->type }}">
+                        <div class="gallery-image">
+                            @if($item->image_path)
+                                <img src="{{ asset('storage/'.$item->image_path) }}" alt="{{ $item->title }}" style="width:100%;height:220px;object-fit:cover;">
+                            @else
+                                <div class="image-placeholder">🖼️</div>
+                            @endif
+                            <div class="gallery-overlay">
+                                <a class="overlay-btn" href="{{ asset('storage/'.$item->image_path) }}" target="_blank" rel="noopener">
+                                    <i class="fa-eye"></i>
+                                </a>
+                                <a class="overlay-btn" href="{{ asset('storage/'.$item->image_path) }}" download>
+                                    <i class="fa-download"></i>
+                                </a>
+                                <button class="overlay-btn" 
+                                    onclick="openEditFromButton(this)"
+                                    data-id="{{ $item->id }}"
+                                    data-title="{{ $item->title }}"
+                                    data-description="{{ $item->description }}"
+                                    data-category="{{ $item->category }}"
+                                    data-type="{{ $item->type }}"
+                                    data-image-url="{{ asset('storage/'.$item->image_path) }}">
+                                    <i class="fa-edit"></i>
+                                </button>
+                                <form method="POST" action="{{ route('admin.galery.destroy', $item) }}" onsubmit="return confirm('Hapus media ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="overlay-btn"><i class="fa-trash"></i></button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="gallery-info">
+                            <div class="gallery-title">{{ $item->title }}</div>
+                            <div class="gallery-meta">
+                                <span class="gallery-category">{{ $item->category ?? 'Umum' }}</span>
+                                <span class="gallery-date">{{ $item->created_at?->format('d M Y') }}</span>
+                            </div>
+                            <div class="gallery-description">{{ $item->description }}</div>
+                            <div class="gallery-actions">
+                                <a class="btn btn-secondary btn-sm" href="{{ asset('storage/'.$item->image_path) }}" target="_blank"><i class="fa-eye"></i> Lihat</a>
+                                <button class="btn btn-primary btn-sm"
+                                    onclick="openEditFromButton(this)"
+                                    data-id="{{ $item->id }}"
+                                    data-title="{{ $item->title }}"
+                                    data-description="{{ $item->description }}"
+                                    data-category="{{ $item->category }}"
+                                    data-type="{{ $item->type }}"
+                                    data-image-url="{{ asset('storage/'.$item->image_path) }}">
+                                    <i class="fa-edit"></i> Edit
+                                </button>
+                                <form method="POST" action="{{ route('admin.galery.destroy', $item) }}" onsubmit="return confirm('Hapus media ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm"><i class="fa-trash"></i> Hapus</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
+                @empty
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div class="empty-icon">🖼️</div>
+                        <div class="empty-title">Belum ada media</div>
+                        <div class="empty-text">Unggah gambar pertama Anda menggunakan form di atas.</div>
+                    </div>
+                @endforelse
+            @endisset
+        </div>
+
+        <!-- Edit Modal -->
+        <div class="modal" id="editModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">Edit Media</div>
+                    <button class="close-btn" type="button" onclick="closeEditModal()">✕</button>
                 </div>
-                <div class="gallery-info">
-                    <div class="gallery-title">Sunrise Bromo Peak</div>
-                    <div class="gallery-meta">
-                        <span class="gallery-category">Bromo</span>
-                        <span class="gallery-date">15 Aug 2024</span>
+                <form id="editForm" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    <div class="form-group">
+                        <label class="form-label">Judul</label>
+                        <input type="text" name="title" id="editTitle" class="form-control" required>
                     </div>
-                    <div class="gallery-description">Pemandangan sunrise yang menakjubkan dari puncak Gunung Bromo dengan kabut pagi yang mistis.</div>
-                    <div class="gallery-actions">
-                        <button class="btn btn-secondary btn-sm">
-                            <i class="fa-eye"></i> Lihat
-                        </button>
-                        <button class="btn btn-primary btn-sm">
-                            <i class="fa-edit"></i> Edit
-                        </button>
-                        <button class="btn btn-danger btn-sm">
-                            <i class="fa-trash"></i> Hapus
-                        </button>
+                    <div class="form-group">
+                        <label class="form-label">Deskripsi</label>
+                        <textarea name="description" id="editDescription" class="form-control" rows="3"></textarea>
                     </div>
-                </div>
-            </div>
-            
-            <div class="gallery-item" data-category="malang" data-type="video">
-                <div class="gallery-image">
-                    <div class="image-placeholder">🎥</div>
-                    <div class="gallery-overlay">
-                        <button class="overlay-btn" onclick="viewMedia(2)">
-                            <i class="fa-eye"></i>
-                        </button>
-                        <button class="overlay-btn" onclick="downloadMedia(2)">
-                            <i class="fa-download"></i>
-                        </button>
-                        <button class="overlay-btn" onclick="editMedia(2)">
-                            <i class="fa-edit"></i>
-                        </button>
-                        <button class="overlay-btn" onclick="deleteMedia(2)">
-                            <i class="fa-trash"></i>
-                        </button>
+                    <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <label class="form-label">Kategori</label>
+                            <input type="text" name="category" id="editCategory" class="form-control">
+                        </div>
+                        <div>
+                            <label class="form-label">Tipe</label>
+                            <select name="type" id="editType" class="form-control">
+                                <option value="image">Foto</option>
+                                <option value="video" disabled>Video (belum didukung)</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <div class="gallery-info">
-                    <div class="gallery-title">Drone View Sea of Sand</div>
-                    <div class="gallery-meta">
-                        <span class="gallery-category">Video</span>
-                        <span class="gallery-date">10 Aug 2024</span>
+                    <div class="form-group">
+                        <label class="form-label">Gambar (opsional, untuk ganti)</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <div style="margin-top:8px;font-size:12px;color:#6c757d;">Pratinjau saat ini:</div>
+                        <img id="editPreview" src="" alt="Preview" style="margin-top:6px;max-height:160px;border-radius:8px;">
                     </div>
-                    <div class="gallery-description">Video drone menakjubkan dari lautan pasir Bromo dengan perspektif udara yang memukau.</div>
-                    <div class="gallery-actions">
-                        <button class="btn btn-secondary btn-sm">
-                            <i class="fa-eye"></i> Lihat
-                        </button>
-                        <button class="btn btn-primary btn-sm">
-                            <i class="fa-edit"></i> Edit
-                        </button>
-                        <button class="btn btn-danger btn-sm">
-                            <i class="fa-trash"></i> Hapus
-                        </button>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
 </div>
@@ -1015,6 +1108,32 @@ function handleDragLeave(event) {
 
 function handleFileSelect(event) {
     console.log('Files selected:', event.target.files);
+}
+
+// ===== Edit Modal Logic =====
+function openEditFromButton(btn){
+    const id = btn.dataset.id;
+    const title = btn.dataset.title || '';
+    const description = btn.dataset.description || '';
+    const category = btn.dataset.category || '';
+    const type = btn.dataset.type || 'image';
+    const imageUrl = btn.dataset.imageUrl || '';
+
+    const form = document.getElementById('editForm');
+    const actionTemplate = "{{ route('admin.galery.update', ['gallery' => '__ID__']) }}";
+    form.action = actionTemplate.replace('__ID__', id);
+
+    document.getElementById('editTitle').value = title;
+    document.getElementById('editDescription').value = description;
+    document.getElementById('editCategory').value = category;
+    document.getElementById('editType').value = type;
+    document.getElementById('editPreview').src = imageUrl;
+
+    document.getElementById('editModal').classList.add('show');
+}
+
+function closeEditModal(){
+    document.getElementById('editModal').classList.remove('show');
 }
 </script>
 @endsection

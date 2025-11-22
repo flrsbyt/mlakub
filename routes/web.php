@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\KontakController;
+use App\Http\Controllers\CaraPemesananController;
+use App\Http\Controllers\PemesananController;
+use App\Http\Controllers\GalleryController;
 
 // Authentication Routes
 Route::get('/login', function () {
@@ -20,7 +24,7 @@ Route::get('/login', function () {
         }
         return redirect()->route('home');
     }
-    return redirect()->route('home');
+    return view('auth.login');
 })->name('login');
 
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -35,21 +39,36 @@ Route::middleware(['auth'])
         // Dashboard
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
-        // Paket
-        Route::get('/pesan-paket', [AdminController::class, 'pesanPaket'])->name('pesan-paket');
+        // Paket (menu lain) - halaman daftar pemesanan
+        Route::get('/pesan-paket', [PemesananController::class, 'index'])->name('pesan-paket');
         Route::get('/pilihan-paket', [AdminController::class, 'pilihanPaket'])->name('pilihan-paket');
 
-        // Galery dalam admin
-        Route::get('/galery', [AdminController::class, 'galery'])->name('galery.admin');
+        // Galery dalam admin (CRUD)
+        Route::get('/galery', [GalleryController::class, 'adminIndex'])->name('galery.admin');
+        Route::post('/galery', [GalleryController::class, 'store'])->name('galery.store');
+        Route::put('/galery/{gallery}', [GalleryController::class, 'update'])->name('galery.update');
+        Route::delete('/galery/{gallery}', [GalleryController::class, 'destroy'])->name('galery.destroy');
 
-        // Cara Pemesanan
-        Route::get('/cara-pemesanan', [AdminController::class, 'caraPemesanan'])->name('cara-pemesanan');
+        // Cara Pemesanan (admin CRUD)
+        Route::get('/cara-pemesanan', [CaraPemesananController::class, 'index'])->name('cara-pemesanan');
+        Route::post('/cara-pemesanan', [CaraPemesananController::class, 'store'])->name('cara-pemesanan.store');
+        Route::put('/cara-pemesanan/{langkah}', [CaraPemesananController::class, 'update'])->name('cara-pemesanan.update');
+        Route::delete('/cara-pemesanan/{langkah}', [CaraPemesananController::class, 'destroy'])->name('cara-pemesanan.destroy');
 
-        // Kontak
-        Route::get('/kontak', [AdminController::class, 'kontak'])->name('kontak');
+        // Kontak (admin)
+        Route::get('/kontak', [KontakController::class, 'index'])->name('kontak');
+        Route::patch('/kontak/{pesanKontak}/status', [KontakController::class, 'ubahStatus'])->name('kontak.status');
+        Route::delete('/kontak/{pesanKontak}', [KontakController::class, 'hapus'])->name('kontak.destroy');
 
         // Paket Trip
         Route::get('/paket-trip', [AdminController::class, 'paketTrip'])->name('paket-trip');
+
+        // Pemesanan (admin) - gunakan path /pesan-paket
+        Route::get('/pesan-paket/{pemesanan}', [PemesananController::class, 'show'])->name('pemesanan.show');
+        Route::patch('/pesan-paket/{pemesanan}/status', [PemesananController::class, 'updateStatus'])->name('pemesanan.status');
+        Route::delete('/pesan-paket/{pemesanan}', [PemesananController::class, 'destroy'])->name('pemesanan.destroy');
+        // Legacy alias: /pemesanan -> redirect ke /pesan-paket, tetap punya nama admin.pemesanan.index
+        Route::get('/pemesanan', function(){ return redirect()->route('admin.pesan-paket'); })->name('pemesanan.index');
 
         // CRUD Users
         Route::get('/users', [AdminController::class, 'users'])->name('users.index');
@@ -113,19 +132,10 @@ Route::get('/paketwna', function () {
     return view('paketwna');
 })->name('paketwna');
     
-Route::get('/cara-pemesanan', function () {
-    if (Auth::check() && Auth::user()->role === 'admin') {
-        return redirect()->route('admin.dashboard');
-    }
-    return view('carapemesanan');
-})->name('cara-pemesanan');
+// Cara pemesanan publik (dinamis)
+Route::get('/cara-pemesanan', [CaraPemesananController::class, 'public'])->name('cara-pemesanan');
 
-Route::get('/galeri', function () {
-    if (Auth::check() && Auth::user()->role === 'admin') {
-        return redirect()->route('admin.dashboard');
-    }
-    return view('galeri');
-})->name('galeri');
+Route::get('/galeri', [GalleryController::class, 'publicIndex'])->name('galeri');
 
 Route::get('/kontak', function () {
     if (Auth::check() && Auth::user()->role === 'admin') {
@@ -133,6 +143,12 @@ Route::get('/kontak', function () {
     }
     return view('kontakweb');
 })->name('kontak');
+
+// Form testimoni publik -> simpan ke DB
+Route::post('/kontak/testimoni', [KontakController::class, 'store'])->name('kontak.testimoni.store');
+
+// Pemesanan publik (bisa dipanggil dari semua halaman paket)
+Route::post('/pemesanan', [PemesananController::class, 'store'])->name('pemesanan.store');
 
 // Middleware untuk user biasa
 Route::middleware('auth')->group(function () {
@@ -150,6 +166,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // ================= GALERY UMUM =================
-Route::get('/galery', [AdminController::class, 'galery'])->name('galery');
+// Tetap sediakan alias jika diperlukan, arahkan ke halaman publik
+Route::get('/galery', [GalleryController::class, 'publicIndex'])->name('galery');
 
 ?>

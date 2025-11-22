@@ -9,66 +9,69 @@
 <!-- Stats Cards -->
 <div class="stats-container" id="statsContainer">
   <div class="stat-card">
-    <div class="stat-number" id="totalPemesanan">24</div>
+    <div class="stat-number" id="totalPemesanan">{{ $stat['total'] ?? 0 }}</div>
     <div class="stat-label">Total Pemesanan</div>
   </div>
   
   <div class="stat-card">
-    <div class="stat-number" id="menungguKonfirmasi">10</div>
+    <div class="stat-number" id="menungguKonfirmasi">{{ $stat['menunggu'] ?? 0 }}</div>
     <div class="stat-label">Menunggu Konfirmasi</div>
   </div>
   
   <div class="stat-card">
-    <div class="stat-number" id="dikonfirmasi">13</div>
+    <div class="stat-number" id="dikonfirmasi">{{ $stat['dikonfirmasi'] ?? 0 }}</div>
     <div class="stat-label">Dikonfirmasi</div>
   </div>
   
   <div class="stat-card">
-    <div class="stat-number" id="dibatalkan">1</div>
+    <div class="stat-number" id="dibatalkan">{{ $stat['dibatalkan'] ?? 0 }}</div>
     <div class="stat-label">Dibatalkan</div>
   </div>
 </div>
 
 <!-- Filter Bar -->
-<div class="filter-bar">
+<form class="filter-bar" id="filterForm" method="GET" action="{{ route('admin.pesan-paket') }}">
   <div class="filter-group">
     <label>Status</label>
-    <select class="filter-input" id="filterStatus">
-      <option value="">Semua Status</option>
-      <option value="menunggu">Menunggu</option>
-      <option value="dikonfirmasi">Dikonfirmasi</option>
-      <option value="dibatalkan">Dibatalkan</option>
+    <select class="filter-input" name="status">
+      <option value="semua">Semua Status</option>
+      @foreach(['menunggu','dikonfirmasi','selesai','dibatalkan'] as $s)
+        <option value="{{ $s }}" {{ request('status')===$s?'selected':'' }}>{{ ucfirst($s) }}</option>
+      @endforeach
     </select>
   </div>
   
   <div class="filter-group">
     <label>Paket</label>
-    <select class="filter-input" id="filterPaket">
-      <option value="">Semua Paket</option>
-      <option value="bromo-midnight">Bromo Midnight</option>
-      <option value="sunrise-tour">Sunrise Tour</option>
-      <option value="bromo-ijen">Bromo Ijen</option>
+    <select class="filter-input" name="paket">
+      <option value="semua">Semua Paket</option>
+      @foreach($paketList as $p)
+        <option value="{{ $p }}" {{ request('paket')===$p?'selected':'' }}>{{ $p }}</option>
+      @endforeach
     </select>
   </div>
   
   <div class="filter-group">
     <label>Tanggal Dari</label>
-    <input type="date" class="filter-input" id="filterDateFrom">
+    <input type="date" class="filter-input" name="dari" value="{{ request('dari') }}">
   </div>
   
   <div class="filter-group">
     <label>Tanggal Sampai</label>
-    <input type="date" class="filter-input" id="filterDateTo">
+    <input type="date" class="filter-input" name="sampai" value="{{ request('sampai') }}">
   </div>
   
-  <button class="filter-btn" onclick="applyFilter()">Filter</button>
-</div>
+  <div style="display:flex; gap:10px; align-items:flex-end;">
+    <button class="filter-btn" type="submit">Filter</button>
+    <a href="{{ route('admin.pesan-paket') }}" class="filter-btn" style="background:#6c757d; text-decoration:none;">Reset</a>
+  </div>
+</form>
 
 <!-- Table Container -->
 <div class="table-container">
   <div class="table-header">
     <div class="table-title">Daftar Pemesanan Paket</div>
-    <div class="table-info">📊 Total 3 pemesanan 📈 Pembayaran Rp 12.500.000</div>
+    <div class="table-info">📊 Total {{ $pemesanan->total() }} pemesanan 📈 Pembayaran Rp {{ number_format($sumPembayaran,0,',','.') }}</div>
   </div>
   
   <table class="data-table" id="bookingTable">
@@ -83,7 +86,73 @@
       </tr>
     </thead>
     <tbody id="bookingTableBody">
-      <!-- Data akan diisi oleh JavaScript -->
+      @forelse($pemesanan as $row)
+        <tr>
+          <td>
+            <div class="customer-info">
+              <div class="customer-avatar">{{ strtoupper(substr(optional($row->user)->username ?? 'U',0,1)) }}</div>
+              <div class="customer-details">
+                <h4>{{ optional($row->user)->username ?? '-' }}</h4>
+                <p>{{ optional($row->user)->nomor_hp ? '+62 ' . optional($row->user)->nomor_hp : '' }}</p>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="package-info">
+              <span class="package-icon">🌄</span>
+              <div class="package-details">
+                <h4>{{ $row->paket }}</h4>
+                <p class="price">Rp {{ number_format($row->total,0,',','.') }}</p>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div>
+              <strong>{{ \Carbon\Carbon::parse($row->tanggal_keberangkatan)->translatedFormat('d F Y') }}</strong><br>
+              <small style="color:#666;">&nbsp;</small>
+            </div>
+          </td>
+          <td>
+            <div style="text-align:center;">
+              <strong>{{ $row->peserta }}</strong><br>
+              <small style="color:#666;">orang</small>
+            </div>
+          </td>
+          <td>
+            @php
+              $badge = 'status-menunggu';
+              if($row->status==='dikonfirmasi') $badge='status-dikonfirmasi';
+              elseif($row->status==='dibatalkan') $badge='status-dibatalkan';
+            @endphp
+            <span class="status-badge {{ $badge }}">{{ strtoupper($row->status) }}</span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <form method="POST" action="{{ route('admin.pemesanan.status',$row) }}">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="status" value="dikonfirmasi">
+                <button class="action-btn btn-confirm" type="submit">KONFIRMASI</button>
+              </form>
+              <form method="POST" action="{{ route('admin.pemesanan.status',$row) }}">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="status" value="dibatalkan">
+                <button class="action-btn btn-cancel" type="submit">TOLAK</button>
+              </form>
+              <form method="POST" action="{{ route('admin.pemesanan.destroy',$row) }}" onsubmit="return confirm('Hapus pemesanan ini?')">
+                @csrf
+                @method('DELETE')
+                <button class="action-btn btn-detail" type="submit">HAPUS</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      @empty
+        <tr>
+          <td colspan="6" style="text-align:center; color:#666;">Belum ada pemesanan.</td>
+        </tr>
+      @endforelse
     </tbody>
   </table>
 </div>
@@ -423,209 +492,30 @@
 </style>
 
 <script>
-  // ===== DATA PEMESANAN (CONTOH) =====
-  const bookingData = [
-    {
-      id: 1,
-      customer: {
-        name: 'Ahmad Yusuf',
-        phone: '📱 +62 812 3456 7890',
-        avatar: 'A'
-      },
-      package: {
-        name: 'Paket Bromo Ijen WNA',
-        icon: '🌄',
-        price: 'Rp 1.500.000'
-      },
-      date: '25 Agustus 2025',
-      time: '02:00 - 10:00',
-      participants: 4,
-      status: 'menunggu'
-    },
-    {
-      id: 2,
-      customer: {
-        name: 'Siti Rahma',
-        phone: '📱 +62 813 9876 5432',
-        avatar: 'S'
-      },
-      package: {
-        name: 'Daily Trip Bromo Sunrise',
-        icon: '🌅',
-        price: 'Rp 2.800.000'
-      },
-      date: '01 September 2025',
-      time: '03:00 - 11:00',
-      participants: 6,
-      status: 'dikonfirmasi'
-    },
-    {
-      id: 3,
-      customer: {
-        name: 'Budi Santoso',
-        phone: '📱 +62 814 1122 3344',
-        avatar: 'B'
-      },
-      package: {
-        name: 'Trip Bromo Sunrise',
-        icon: '🏔️',
-        price: 'Rp 6.200.000'
-      },
-      date: '15 September 2025',
-      time: '01:00 - 16:00',
-      participants: 8,
-      status: 'dibatalkan'
+  (function(){
+    const form = document.getElementById('filterForm');
+    if(!form) return;
+    const status = form.querySelector('select[name="status"]');
+    const paket = form.querySelector('select[name="paket"]');
+    const dari = form.querySelector('input[name="dari"]');
+    const sampai = form.querySelector('input[name="sampai"]');
+
+    function validDateRange(){
+      if(dari && sampai && dari.value && sampai.value){
+        if(new Date(dari.value) > new Date(sampai.value)){
+          alert('Tanggal Dari tidak boleh lebih besar dari Tanggal Sampai');
+          return false;
+        }
+      }
+      return true;
     }
-  ];
-  
-  // ===== FUNGSI UNTUK RENDER TABLE =====
-  function renderBookingTable(data = bookingData) {
-    const tbody = document.getElementById('bookingTableBody');
-    tbody.innerHTML = '';
-    
-    data.forEach(booking => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>
-          <div class="customer-info">
-            <div class="customer-avatar">${booking.customer.avatar}</div>
-            <div class="customer-details">
-              <h4>${booking.customer.name}</h4>
-              <p>${booking.customer.phone}</p>
-            </div>
-          </div>
-        </td>
-        <td>
-          <div class="package-info">
-            <span class="package-icon">${booking.package.icon}</span>
-            <div class="package-details">
-              <h4>${booking.package.name}</h4>
-              <p class="price">${booking.package.price}</p>
-            </div>
-          </div>
-        </td>
-        <td>
-          <div>
-            <strong>${booking.date}</strong><br>
-            <small style="color: #666;">${booking.time}</small>
-          </div>
-        </td>
-        <td>
-          <div style="text-align: center;">
-            <strong>${booking.participants}</strong><br>
-            <small style="color: #666;">orang</small>
-          </div>
-        </td>
-        <td>
-          <span class="status-badge status-${booking.status}">
-            ${booking.status.toUpperCase()}
-          </span>
-        </td>
-        <td>
-          <div class="action-buttons">
-            ${getActionButtons(booking)}
-          </div>
-        </td>
-      `;
-      tbody.appendChild(row);
-    });
-  }
-  
-  // ===== FUNGSI UNTUK ACTION BUTTONS =====
-  function getActionButtons(booking) {
-    switch(booking.status) {
-      case 'menunggu':
-        return `
-          <button class="action-btn btn-confirm" onclick="confirmBooking(${booking.id})">KONFIRMASI</button>
-          <button class="action-btn btn-cancel" onclick="cancelBooking(${booking.id})">TOLAK</button>
-        `;
-      case 'dikonfirmasi':
-        return `
-          <button class="action-btn btn-detail" onclick="viewDetail(${booking.id})">DETAIL</button>
-          <button class="action-btn btn-chat" onclick="openChat(${booking.id})">CHAT</button>
-        `;
-      case 'dibatalkan':
-        return `
-          <button class="action-btn btn-detail" onclick="viewDetail(${booking.id})">DETAIL</button>
-          <button class="action-btn btn-invoice" onclick="viewInvoice(${booking.id})">INVOICE</button>
-        `;
-    }
-  }
-  
-  // ===== FUNGSI UNTUK UPDATE STATISTIK =====
-  function updateStats() {
-    const total = bookingData.length;
-    const menunggu = bookingData.filter(b => b.status === 'menunggu').length;
-    const dikonfirmasi = bookingData.filter(b => b.status === 'dikonfirmasi').length;
-    const dibatalkan = bookingData.filter(b => b.status === 'dibatalkan').length;
-    
-    document.getElementById('totalPemesanan').textContent = total;
-    document.getElementById('menungguKonfirmasi').textContent = menunggu;
-    document.getElementById('dikonfirmasi').textContent = dikonfirmasi;
-    document.getElementById('dibatalkan').textContent = dibatalkan;
-  }
-  
-  // ===== ACTION FUNCTIONS =====
-  function confirmBooking(id) {
-    const booking = bookingData.find(b => b.id === id);
-    if (booking) {
-      booking.status = 'dikonfirmasi';
-      renderBookingTable();
-      updateStats();
-      alert(`Pemesanan ${booking.customer.name} telah dikonfirmasi!`);
-    }
-  }
-  
-  function cancelBooking(id) {
-    const booking = bookingData.find(b => b.id === id);
-    if (booking && confirm('Yakin ingin menolak pemesanan ini?')) {
-      booking.status = 'dibatalkan';
-      renderBookingTable();
-      updateStats();
-      alert(`Pemesanan ${booking.customer.name} telah ditolak!`);
-    }
-  }
-  
-  function viewDetail(id) {
-    alert(`Melihat detail pemesanan ID: ${id}`);
-  }
-  
-  function openChat(id) {
-    alert(`Membuka chat dengan pelanggan ID: ${id}`);
-  }
-  
-  function viewInvoice(id) {
-    alert(`Melihat invoice pemesanan ID: ${id}`);
-  }
-  
-  // ===== FILTER FUNCTION =====
-  function applyFilter() {
-    const statusFilter = document.getElementById('filterStatus').value;
-    const paketFilter = document.getElementById('filterPaket').value;
-    
-    let filteredData = bookingData;
-    
-    if (statusFilter) {
-      filteredData = filteredData.filter(b => b.status === statusFilter);
-    }
-    
-    if (paketFilter) {
-      filteredData = filteredData.filter(b => 
-        b.package.name.toLowerCase().includes(paketFilter.toLowerCase())
-      );
-    }
-    
-    renderBookingTable(filteredData);
-  }
-  
-  // ===== SEARCH FUNCTION (using admin header search) =====
-  // Search functionality can be implemented here if needed
-  
-  // ===== INITIALIZE =====
-  document.addEventListener('DOMContentLoaded', function() {
-    renderBookingTable();
-    updateStats();
-  });
+
+    form.addEventListener('submit', function(e){ if(!validDateRange()) { e.preventDefault(); }});
+    if(status) status.addEventListener('change', ()=> form.submit());
+    if(paket) paket.addEventListener('change', ()=> form.submit());
+    if(dari) dari.addEventListener('change', ()=> { if(validDateRange()) form.submit(); });
+    if(sampai) sampai.addEventListener('change', ()=> { if(validDateRange()) form.submit(); });
+  })();
 </script>
 @endsection
 
