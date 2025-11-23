@@ -15,7 +15,9 @@ return new class extends Migration {
             $table->string('nomor_hp', 15);
             $table->string('asal', 100);
             $table->string('profil')->nullable(); // bisa link foto atau text
-            $table->date('tanggal_daftar')->default(DB::raw('CURRENT_DATE'));
+            // Catatan: Beberapa versi MySQL/MariaDB tidak mengizinkan default ekspresi untuk DATE
+            // Gunakan nullable lalu set nilai saat insert (seeder/controller)
+            $table->date('tanggal_daftar')->nullable();
         });
     }
 

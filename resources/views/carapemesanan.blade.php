@@ -1078,24 +1078,49 @@
         /* Steps Grid */
         .steps-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
+            grid-template-columns: 1fr;
+            gap: 28px;
             max-width: 1200px;
             margin: 0 auto;
             position: relative;
             z-index: 2;
+        }
+        @media (min-width: 768px) {
+            .steps-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (min-width: 1024px) {
+            .steps-grid { grid-template-columns: repeat(3, 1fr); }
         }
 
         /* Step Cards */
         .step-card {
             background: white;
             border-radius: 20px;
-            padding: 40px 30px;
+            padding: 32px 28px;
             text-align: center;
             position: relative;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
             border: 2px solid transparent;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            width: 100%;
+            min-height: 240px;
+            margin: 0 auto;
+        }
+
+        .step-card h3 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .step-card p {
+            font-size: 0.98rem;
+            color: #666;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             overflow: hidden;
         }
 
@@ -2318,95 +2343,23 @@
             </div>
 
             <div class="steps-grid">
-                <!-- Step 1 -->
-                <div class="step-card animate-on-scroll" data-step="1">
+                @forelse(($langkah ?? []) as $i => $row)
+                <div class="step-card animate-on-scroll" data-step="{{ $row->urutan }}">
                     <div class="step-icon">
-                        <i class="fas fa-globe"></i>
+                        <i class="{{ $row->ikon ?: 'fas fa-check' }}"></i>
                     </div>
+                    <div class="step-number">{{ str_pad($row->urutan, 2, '0', STR_PAD_LEFT) }}</div>
+                    <h3>{{ $row->judul }}</h3>
+                    <p>{{ $row->deskripsi }}</p>
+                </div>
+                @empty
+                <div class="step-card animate-on-scroll">
+                    <div class="step-icon"><i class="fas fa-info-circle"></i></div>
                     <div class="step-number">01</div>
-                    <h3>Kunjungi Website</h3>
-                    <p>Akses website MlakuBromo.ID dan jelajahi berbagai paket wisata menarik yang tersedia</p>
-                    <!-- <div class="step-features">
-                        <span><i class="fas fa-check"></i> Lihat paket wisata</span>
-                        <span><i class="fas fa-check"></i> Galeri destinasi</span>
-                        <span><i class="fas fa-check"></i> Baca testimoni</span>
-                    </div> -->
+                    <h3>Belum ada langkah</h3>
+                    <p>Langkah pemesanan akan tampil di sini setelah admin menambahkannya.</p>
                 </div>
-
-                <!-- Step 2 -->
-                <div class="step-card animate-on-scroll" data-step="2">
-                    <div class="step-icon">
-                        <i class="fas fa-map-marked-alt"></i>
-                    </div>
-                    <div class="step-number">02</div>
-                    <h3>Pilih Paket Trip</h3>
-                    <p>Pilih paket tour sesuai keinginan: Open Trip Bromo, Daily Trip Bromo Sunrise, atau paket lainnya</p>
-                    <!-- <div class="step-features">
-                        <span><i class="fas fa-mountain"></i> Bromo Sunrise</span>
-                        <span><i class="fas fa-fire"></i> Ijen Blue Fire</span>
-                        <span><i class="fas fa-route"></i> Paket Kombinasi</span>
-                    </div> -->
-                </div>
-
-                <!-- Step 3 -->
-                <div class="step-card animate-on-scroll" data-step="3">
-                    <div class="step-icon">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <div class="step-number">03</div>
-                    <h3>Pilih Tanggal</h3>
-                    <p>Tentukan tanggal keberangkatan yang sesuai dengan jadwal dan preferensi Anda</p>
-                    <!-- <div class="step-features">
-                        <span><i class="fas fa-calendar"></i> Cek ketersediaan</span>
-                        <span><i class="fas fa-users"></i> Kapasitas grup</span>
-                        <span><i class="fas fa-clock"></i> Fleksibel waktu</span>
-                    </div> -->
-                </div>
-
-                <!-- Step 4 -->
-                <div class="step-card animate-on-scroll" data-step="4">
-                    <div class="step-icon">
-                        <i class="fas fa-clipboard-check"></i>
-                    </div>
-                    <div class="step-number">04</div>
-                    <h3>Booking & Konfirmasi</h3>
-                    <p>Lakukan booking dan konfirmasi detail perjalanan melalui form booking</p>
-                    <!-- <div class="step-features">
-                        <span><i class="fas fa-file-contract"></i>Form booking</span>
-                        <span><i class="fas fa-file-contract"></i>Riwayat Pemesanan</span>
-                        <span><i class="fas fa-headset"></i> CS 24/7</span>
-                    </div> -->
-                </div>
-
-                <!-- Step 5 -->
-                <div class="step-card animate-on-scroll" data-step="5">
-                    <div class="step-icon">
-                        <i class="fas fa-credit-card"></i>
-                    </div>
-                    <div class="step-number">05</div>
-                    <h3>Pembayaran</h3>
-                    <p>Lakukan pembayaran dengan berbagai metode yang tersedia dan aman</p>
-                    <!-- <div class="step-features">
-                        <span><i class="fas fa-university"></i> Transfer Bank</span>
-                        <span><i class="fas fa-mobile-alt"></i> E-Wallet</span>
-                        <span><i class="fas fa-shield-alt"></i> Aman & Terpercaya</span>
-                    </div> -->
-                </div>
-
-                <!-- Step 6 -->
-                <div class="step-card animate-on-scroll" data-step="6">
-                    <div class="step-icon">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="step-number">06</div>
-                    <h3>Nikmati Trip!</h3>
-                    <p>Rasakan pengalaman wisata tak terlupakan dengan guide profesional dan fasilitas terbaik</p>
-                    <!-- <div class="step-features">
-                        <span><i class="fas fa-user-tie"></i> Guide profesional</span>
-                        <span><i class="fas fa-camera"></i> Spot foto terbaik</span>
-                        <span><i class="fas fa-heart"></i> Kenangan indah</span>
-                    </div> -->
-                </div>
+                @endforelse
             </div>
 
             <!-- Call to Action -->

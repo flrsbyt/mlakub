@@ -2254,7 +2254,24 @@
     </section>
 
     <section class="gallery-section">
-        <div class="gallery-grid animate-on-scroll" id="galleryGrid"></div>
+        <div class="gallery-grid animate-on-scroll" id="galleryGrid">
+            @isset($galleries)
+                @foreach($galleries as $item)
+                    <div class="gallery-item" onclick="openPhotoViewer('{{ asset('storage/'.$item->image_path) }}', '{{ addslashes($item->title) }}')">
+                        <img src="{{ asset('storage/'.$item->image_path) }}" alt="{{ $item->title }}" loading="lazy">
+                        <div class="gallery-eye-icon" onclick="event.stopPropagation(); openPhotoViewer('{{ asset('storage/'.$item->image_path) }}', '{{ addslashes($item->title) }}')">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div class="gallery-overlay">
+                            <div class="gallery-title">{{ $item->title }}</div>
+                            @if($item->description)
+                                <div class="gallery-description">{{ $item->description }}</div>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            @endisset
+        </div>
     </section>
 
     <!-- ================== MODAL GALERI ================== -->
@@ -2619,8 +2636,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-  // Jalankan generate galeri saat halaman load
+  // Jalankan generate galeri saat halaman load (fallback jika tidak ada data server)
+  @empty($galleries)
   document.addEventListener("DOMContentLoaded", generateGallery);
+  @endempty
 
     function switchToRegister() {
         document.getElementById('loginModal').style.display = 'none';

@@ -521,16 +521,16 @@
                 <h2 class="section-title">Pesan Masuk</h2>
                 <div class="messages-stats">
                     <div class="stat-item">
-                        <div class="stat-number" id="totalMessages">5</div>
+                        <div class="stat-number" id="totalMessages">{{ $stat['total'] ?? 0 }}</div>
                         <div class="stat-label">Total</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-number" id="unreadMessages">3</div>
+                        <div class="stat-number" id="unreadMessages">{{ $stat['menunggu'] ?? 0 }}</div>
                         <div class="stat-label">Belum Dibaca</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-number" id="readMessages">2</div>
-                        <div class="stat-label">Sudah Dibaca</div>
+                        <div class="stat-number" id="readMessages">{{ ($stat['diterima'] ?? 0) + ($stat['ditolak'] ?? 0) }}</div>
+                        <div class="stat-label">Sudah Diproses</div>
                     </div>
                 </div>
             </div>
@@ -548,76 +548,37 @@
                         </tr>
                     </thead>
                     <tbody id="messagesTableBody">
+                        @php $badgeClass = fn($s) => $s==='menunggu' ? 'status-new' : 'status-read'; @endphp
+                        @forelse(($pesan ?? collect()) as $row)
                         <tr>
-                            <td>Ahmad Rizki</td>
-                            <td>ahmad.rizki@email.com</td>
-                            <td>Pertanyaan tentang produk</td>
-                            <td>15 Sep 2025</td>
-                            <td><span class="status-badge status-new">Baru</span></td>
+                            <td>{{ $row->nama }}</td>
+                            <td>{{ $row->email }}</td>
+                            <td>{{ \Illuminate\Support\Str::limit($row->keterangan, 40) }}</td>
+                            <td>{{ \Carbon\Carbon::parse($row->created_at)->translatedFormat('d M Y') }}</td>
+                            <td>
+                                <span class="status-badge {{ $badgeClass($row->status) }}">{{ strtoupper($row->status==='menunggu'?'BARU':$row->status) }}</span>
+                            </td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="action-btn primary" onclick="readMessage(1)">Baca</button>
-                                    <button class="action-btn" onclick="replyMessage(1)">Balas</button>
-                                    <button class="action-btn danger" onclick="deleteMessage(1)">Hapus</button>
+                                    <form action="{{ route('admin.kontak.status', $row->id) }}" method="POST">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="status" value="{{ $row->status==='menunggu' ? 'diterima' : 'menunggu' }}">
+                                        <button class="action-btn primary">{{ $row->status==='menunggu' ? 'Tandai Dibaca' : 'Tandai Baru' }}</button>
+                                    </form>
+                                    <form action="{{ route('admin.kontak.destroy', $row->id) }}" method="POST" onsubmit="return confirm('Hapus pesan ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="action-btn danger">Hapus</button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
+                        @empty
                         <tr>
-                            <td>Sarah Putri</td>
-                            <td>sarah.putri@gmail.com</td>
-                            <td>Keluhan layanan</td>
-                            <td>14 Sep 2025</td>
-                            <td><span class="status-badge status-read">Dibaca</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn primary" onclick="readMessage(2)">Baca</button>
-                                    <button class="action-btn" onclick="replyMessage(2)">Balas</button>
-                                    <button class="action-btn danger" onclick="deleteMessage(2)">Hapus</button>
-                                </div>
-                            </td>
+                            <td colspan="6" style="text-align:center; color:#6b7280;">Belum ada pesan</td>
                         </tr>
-                        <tr>
-                            <td>Budi Santoso</td>
-                            <td>budi.santoso@yahoo.com</td>
-                            <td>Request demo produk</td>
-                            <td>13 Sep 2025</td>
-                            <td><span class="status-badge status-new">Baru</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn primary" onclick="readMessage(3)">Baca</button>
-                                    <button class="action-btn" onclick="replyMessage(3)">Balas</button>
-                                    <button class="action-btn danger" onclick="deleteMessage(3)">Hapus</button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Maya Sari</td>
-                            <td>maya.sari@company.com</td>
-                            <td>Kerjasama bisnis</td>
-                            <td>12 Sep 2025</td>
-                            <td><span class="status-badge status-read">Dibaca</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn primary" onclick="readMessage(4)">Baca</button>
-                                    <button class="action-btn" onclick="replyMessage(4)">Balas</button>
-                                    <button class="action-btn danger" onclick="deleteMessage(4)">Hapus</button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Doni Prasetyo</td>
-                            <td>doni.prasetyo@startup.id</td>
-                            <td>Informasi harga paket</td>
-                            <td>11 Sep 2025</td>
-                            <td><span class="status-badge status-new">Baru</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn primary" onclick="readMessage(5)">Baca</button>
-                                    <button class="action-btn" onclick="replyMessage(5)">Balas</button>
-                                    <button class="action-btn danger" onclick="deleteMessage(5)">Hapus</button>
-                                </div>
-                            </td>
-                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>

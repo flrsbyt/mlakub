@@ -4059,7 +4059,12 @@
                 <span class="payment-close" onclick="closePaymentModal()">&times;</span>
             </div>
             <div class="payment-modal-body">
-                <form id="bookingForm">
+                <form id="bookingForm" method="POST" action="{{ route('pemesanan.store') }}">
+                    @csrf
+                    <input type="hidden" name="paket" id="paketName" value="Open Trip">
+                    <input type="hidden" name="peserta" id="pesertaHidden">
+                    <input type="hidden" name="tanggal_keberangkatan" id="tanggalHidden">
+                    <input type="hidden" name="total" id="totalHidden">
                     <div class="booking-info">
                         <div class="info-card">
                             <i class="fas fa-info-circle"></i>
@@ -5159,24 +5164,18 @@
                 return;
             }
             
-            // Format date to Indonesian format with month name
-            const dateObj = new Date(date);
-            const options = { 
-                day: 'numeric', 
-                month: 'long', 
-                year: 'numeric' 
-            };
-            const formattedDate = dateObj.toLocaleDateString('id-ID', options);
+            // Hitung total sesuai logika di UI
+            const pricePerPerson = 350000;
+            const adminFee = 5000;
+            const totalCalc = (parseInt(participants) * pricePerPerson) + adminFee;
             
-            // Update confirmation modal with booking details
-            document.getElementById('confirmedParticipants').textContent = participants + ' orang';
-            document.getElementById('confirmedDate').textContent = formattedDate;
-            document.getElementById('confirmedTotal').textContent = document.getElementById('totalPrice').textContent;
+            // Isi hidden inputs untuk dikirim ke backend
+            document.getElementById('pesertaHidden').value = participants;
+            document.getElementById('tanggalHidden').value = date;
+            document.getElementById('totalHidden').value = totalCalc;
             
-            // Show confirmation modal
-            document.getElementById('paymentModal').style.display = 'none';
-            document.getElementById('confirmationModal').style.display = 'block';
-            document.body.style.overflow = 'hidden';
+            // Submit form ke backend
+            document.getElementById('bookingForm').submit();
         }
 
         // Close confirmation modal
@@ -5238,5 +5237,19 @@
             });
         });
     </script>
-</body>
-</html>
+    @if(session('booking_success'))
+    <script>
+        (function(){
+            const d = @json(session('booking_success'));
+            try{
+                const formatted = new Date(d.tanggal_keberangkatan).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+                const pEl = document.getElementById('confirmedParticipants'); if(pEl) pEl.textContent = d.peserta + ' orang';
+                const tEl = document.getElementById('confirmedDate'); if(tEl) tEl.textContent = formatted;
+                const totalEl = document.getElementById('confirmedTotal'); if(totalEl){ totalEl.textContent = 'Rp ' + Number(d.total||0).toLocaleString('id-ID'); }
+                const modal = document.getElementById('confirmationModal'); if(modal){ modal.style.display='block'; document.body.style.overflow='hidden'; }
+            }catch(e){ /* ignore */ }
+        })();
+    </script>
+    @endif
+  </body>
+  </html>

@@ -5079,41 +5079,16 @@
         function submitBooking() {
             const participants = document.getElementById('participantCount').value;
             const date = document.getElementById('departureDate').value;
-            
-            if (!participants || !date) {
-                alert('Mohon lengkapi semua data booking');
-                return;
-            }
-            
-            // Check if selected date is today (prevent same day booking)
+            if (!participants || !date) { alert('Mohon lengkapi semua data booking'); return; }
             const selectedDate = new Date(date);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            selectedDate.setHours(0, 0, 0, 0);
-            
-            if (selectedDate <= today) {
-                alert('Maaf, pemesanan tidak dapat dilakukan untuk hari ini. Silakan pilih tanggal minimal besok.');
-                return;
-            }
-            
-            // Format date to Indonesian format with month name
-            const dateObj = new Date(date);
-            const options = { 
-                day: 'numeric', 
-                month: 'long', 
-                year: 'numeric' 
-            };
-            const formattedDate = dateObj.toLocaleDateString('id-ID', options);
-            
-            // Update confirmation modal with booking details
-            document.getElementById('confirmedParticipants').textContent = participants + ' orang';
-            document.getElementById('confirmedDate').textContent = formattedDate;
-            document.getElementById('confirmedTotal').textContent = document.getElementById('totalPrice').textContent;
-            
-            // Show confirmation modal
-            document.getElementById('paymentModal').style.display = 'none';
-            document.getElementById('confirmationModal').style.display = 'block';
-            document.body.style.overflow = 'hidden';
+            const today = new Date(); today.setHours(0,0,0,0); selectedDate.setHours(0,0,0,0);
+            if (selectedDate <= today) { alert('Maaf, pemesanan tidak dapat dilakukan untuk hari ini. Silakan pilih tanggal minimal besok.'); return; }
+            const pricePerPerson = 2000000; const adminFee = 5000;
+            const totalCalc = (parseInt(participants) * pricePerPerson) + adminFee;
+            document.getElementById('travelPesertaHidden').value = participants;
+            document.getElementById('travelTanggalHidden').value = date;
+            document.getElementById('travelTotalHidden').value = totalCalc;
+            document.getElementById('travelBookingForm').submit();
         }
 
         // Close confirmation modal
@@ -5215,5 +5190,84 @@
             }
         })();
     </script>
+    @if(session('booking_success'))
+    <script>
+        (function(){
+            const d = @json(session('booking_success'));
+            try{
+                const formatted = new Date(d.tanggal_keberangkatan).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+                // Travel page uses same confirmation ids if present
+                const pEl = document.getElementById('confirmedParticipants'); if(pEl) pEl.textContent = d.peserta + ' orang';
+                const tEl = document.getElementById('confirmedDate'); if(tEl) tEl.textContent = formatted;
+                const totalEl = document.getElementById('confirmedTotal');
+                if(totalEl){ totalEl.textContent = 'Rp ' + Number(d.total||0).toLocaleString('id-ID'); }
+                const modal = document.getElementById('confirmationModal'); if(modal){ modal.style.display='block'; document.body.style.overflow='hidden'; }
+            }catch(e){ /* ignore */ }
+        })();
+    </script>
+    @endif
+
+    <!-- Simple Booking Modal for Travel to Malang Bromo 3D2N -->
+    <style>
+        .simple-booking-btn{position:fixed;right:20px;bottom:20px;background:#FE9C03;color:#fff;border:none;border-radius:30px;padding:12px 18px;font-weight:700;box-shadow:0 6px 18px rgba(254,156,3,.35);cursor:pointer;z-index:9999}
+        .simple-booking-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:10000;align-items:center;justify-content:center}
+        .simple-booking-card{background:#fff;border-radius:16px;padding:20px;max-width:360px;width:92%;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+        .simple-booking-card h3{margin:0 0 12px 0}
+        .simple-booking-card .form-row{margin-bottom:12px}
+        .simple-booking-card input{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px}
+        .simple-booking-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+        .btn-cancel{background:#6c757d;color:#fff;border:none;border-radius:10px;padding:10px 14px}
+        .btn-submit{background:#FE9C03;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-weight:700}
+    </style>
+    <button class="simple-booking-btn" onclick="document.getElementById('simpleBookingTravel').style.display='flex'">Booking Sekarang</button>
+    <div class="simple-booking-modal" id="simpleBookingTravel" onclick="if(event.target===this)this.style.display='none'">
+        <div class="simple-booking-card">
+            <h3>Booking Travel to Malang Bromo 3D2N</h3>
+            <form method="POST" action="{{ route('pemesanan.store') }}">
+                @csrf
+                <input type="hidden" name="paket" value="Travel to Malang Bromo 3D2N">
+                <input type="hidden" name="total" id="tbTotalHidden">
+                <div class="form-row">
+                    <label class="form-label">Jumlah Peserta</label>
+                    <div class="number-input">
+                        <button type="button" onclick="tbChange(-1)">-</button>
+                        <input id="tbParticipants" type="number" name="peserta" min="1" value="1" required oninput="tbUpdateTotal()">
+                        <button type="button" onclick="tbChange(1)">+</button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">Tanggal Keberangkatan</label>
+                    <input id="tbDate" type="date" name="tanggal_keberangkatan" required>
+                </div>
+                <div class="summary">
+                    <div id="tbTotalParticipants">1 orang</div>
+                    <div id="tbTotalLabel">Rp 2.005.000</div>
+                </div>
+                <div class="simple-booking-actions">
+                    <button type="button" class="btn-cancel" onclick="document.getElementById('simpleBookingTravel').style.display='none'">Batal</button>
+                    <button type="submit" class="btn-submit">Kirim</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        (function(){
+            const pricePerPerson = 2000000; const adminFee = 5000;
+            const date = document.getElementById('tbDate');
+            if(date){ const t=new Date(); t.setDate(t.getDate()+1); date.min = t.toISOString().split('T')[0]; }
+            window.tbChange=function(n){ const el=document.getElementById('tbParticipants'); let v=parseInt(el.value||1)+n; if(v<1) v=1; el.value=v; tbUpdateTotal(); }
+            window.tbUpdateTotal=function(){ const v=parseInt(document.getElementById('tbParticipants').value||1); const total=(v*pricePerPerson)+adminFee; document.getElementById('tbTotalParticipants').textContent=v+" orang"; document.getElementById('tbTotalLabel').textContent='Rp '+ total.toLocaleString('id-ID'); document.getElementById('tbTotalHidden').value=total; }
+            tbUpdateTotal();
+            // Hook any CTA with class .btn-pesan to open this modal to ensure backend submission
+            document.querySelectorAll('.btn-pesan').forEach(function(btn){ btn.addEventListener('click', function(e){ e.preventDefault(); document.getElementById('simpleBookingTravel').style.display='flex'; }); });
+        })();
+    </script>
+    <form id="travelBookingForm" method="POST" action="{{ route('pemesanan.store') }}" style="display:none;">
+        @csrf
+        <input type="hidden" name="paket" value="Travel to Malang Bromo 3D2N">
+        <input type="hidden" id="travelPesertaHidden" name="peserta">
+        <input type="hidden" id="travelTanggalHidden" name="tanggal_keberangkatan">
+        <input type="hidden" id="travelTotalHidden" name="total">
+    </form>
 </body>
 </html>

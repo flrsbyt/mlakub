@@ -35,7 +35,7 @@ class AdminController extends Controller
     // 🔹 Halaman lain
     public function pesanPaket()
     {
-        return view('admin.pesan-paket');
+        return redirect()->route('admin.pemesanan.index');
     }
 
     public function galery()

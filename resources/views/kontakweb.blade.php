@@ -2051,7 +2051,8 @@
         Kirim <span class="highlight">Testimoni</span>
         </h3>
 
-        <form id="testimonialForm">
+        <form id="testimonialForm" action="{{ route('kontak.testimoni.store') }}" method="POST">
+        @csrf
         <div class="form-group">
             <input type="text" class="form-input" name="nama" placeholder="Nama Lengkap" required>
         </div>
@@ -2259,33 +2260,12 @@
         }
     });
 
-    // Submit Testimonial - show Thank You modal
-    (function(){
-        const form = document.getElementById('testimonialForm');
-        if (!form) return;
-        form.addEventListener('submit', function(e){
-            e.preventDefault();
-            // Require login before allowing testimonial submission
-            const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
-            if (isLoggedIn) {
-                // TODO: Integrate with backend when endpoint is ready
-                // For now, show thank you modal and reset form
-                openThankYouModal();
-                form.reset();
-            } else {
-                showLoginModal();
-            }
-        });
-
-        window.openThankYouModal = function(){
-            const modal = document.getElementById('thankYouModal');
-            if (modal) modal.style.display = 'flex';
-        }
-        window.closeThankYouModal = function(){
-            const modal = document.getElementById('thankYouModal');
-            if (modal) modal.style.display = 'none';
-        }
-    })();
+        // Submit Testimonial: serahkan ke backend (tidak di-block JS)
+        (function(){
+            const form = document.getElementById('testimonialForm');
+            if (!form) return;
+            // tidak ada JS tambahan; biarkan form terkirim ke backend
+        })();
 
     // Show login modal (reused by testimonial submit guard)
     function showLoginModal() {
