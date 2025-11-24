@@ -17,7 +17,9 @@ class PemesananPaket extends Model
         'paket',
         'peserta',
         'tanggal_keberangkatan',
+        'titik_penjemputan',
         'total',
+        'metode_pembayaran',
         'status',
         'catatan',
     ];

@@ -605,9 +605,6 @@
             </div>
         </div>
         
-        <button class="icon-button" title="Pengaturan">
-            <i class="fas fa-cog" style="font-size: 18px;"></i>
-        </button>
         <!-- User Profile -->
         <a href="{{ route('admin.profile') }}" class="user-profile-link">
             <div class="user-profile">
@@ -632,9 +629,9 @@
 </header>
 
 <script>
-    // Fungsi pencarian
-    const searchBox = document.querySelector('.search-box');
-    const suggestionsEl = document.getElementById('adminSearchSuggestions');
+    // Variabel global untuk notifikasi
+    let lastNotificationCheck = null;
+    let notificationPolling = null;
     let menuIndex = [];
     let activeIndex = -1;
 
@@ -838,55 +835,132 @@
     // Load notifikasi ke dropdown
     async function loadDropdownNotifications() {
         try {
-            const response = await fetch('/admin/api/notifications');
+            const timestamp = new Date().getTime();
+            const response = await fetch(`/admin/api/notifications?t=${timestamp}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cache-Control': 'no-cache',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, message: ${error}`);
+            }
+            
             const data = await response.json();
             
-            const content = document.getElementById('dropdownContent');
-            const unreadCount = document.getElementById('dropdownUnreadCount');
+            if (!data.success) {
+                throw new Error(data.message || 'Gagal memuat notifikasi');
+            }
             
-            // Update unread count
-            unreadCount.textContent = data.unread_count + ' baru';
+            if (!Array.isArray(data.notifications)) {
+                throw new Error('Format notifikasi tidak valid');
+            }
             
-            if (data.notifications.length === 0) {
-                content.innerHTML = `
-                    <div class="empty-dropdown">
-                        <div class="empty-dropdown-icon">
-                            <i class="fas fa-bell-slash"></i>
-                        </div>
-                        <div class="empty-dropdown-title">Tidak ada notifikasi</div>
-                        <div class="empty-dropdown-message">Belum ada notifikasi baru untuk saat ini</div>
+            const currentCheck = JSON.stringify(data.notifications);
+            if (lastNotificationCheck === currentCheck) return;
+            lastNotificationCheck = currentCheck;
+            
+            console.log('Memperbarui notifikasi:', data);
+            updateNotificationUI(data);
+            
+        } catch (error) {
+            console.error('Error memuat notifikasi:', error);
+            const dropdownContent = document.getElementById('dropdownContent');
+            if (dropdownContent) {
+                dropdownContent.innerHTML = `
+                    <div class="notification-error" style="padding: 10px; color: #dc3545;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>${error.message || 'Gagal memuat notifikasi. Silakan muat ulang halaman.'}</span>
                     </div>
                 `;
-            } else {
-                content.innerHTML = data.notifications.map(notification => `
-                    <div class="notification-item ${notification.is_read ? '' : 'unread'}" onclick="markAsReadDropdown('${notification.id}')">
-                        <div class="item-icon ${notification.type || 'system'}">
-                            <i class="${notification.icon || 'fas fa-bell'}"></i>
-                            ${!notification.is_read ? '<div class="unread-dot"></div>' : ''}
-                        </div>
-                        <div class="item-content">
-                            <div class="item-title">${notification.title}</div>
-                            <div class="item-message">${notification.message}</div>
-                            <div class="item-meta">
-                                <div class="item-time">
-                                    <i class="fas fa-clock"></i>
-                                    ${notification.time || 'Baru saja'}
-                                </div>
-                                <div class="item-status ${notification.is_read ? 'status-read' : 'status-new'}">
-                                    ${notification.is_read ? 'Dibaca' : 'Baru'}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
             }
-        } catch (error) {
-            console.error('Error loading notifications:', error);
         }
+    }
+    
+    // Fungsi untuk memperbarui UI notifikasi
+    function updateNotificationUI(data) {
+        // Update jumlah notifikasi
+        const countBadge = document.getElementById('notificationCount');
+        const unreadBadge = document.getElementById('dropdownUnreadCount');
+        
+        if (countBadge) countBadge.textContent = data.unread_count || '0';
+        if (unreadBadge) unreadBadge.textContent = `${data.unread_count || 0} baru`;
+        
+        // Update daftar notifikasi
+        const dropdownContent = document.getElementById('dropdownContent');
+        if (!dropdownContent) return;
+        
+        if (!data.notifications || data.notifications.length === 0) {
+            dropdownContent.innerHTML = `
+                <div class="empty-notification" style="padding: 1rem; text-align: center; color: #6c757d;">
+                    <i class="fas fa-bell-slash" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+                    <span>Tidak ada notifikasi</span>
+                </div>`;
+            return;
+        }
+        
+        // Hapus notifikasi yang ada
+        dropdownContent.innerHTML = '';
+        
+        // Tambahkan notifikasi baru
+        data.notifications.forEach(notification => {
+            const notifElement = document.createElement('a');
+            notifElement.href = notification.data?.url || '#';
+            notifElement.className = `notification-item ${!notification.is_read ? 'unread' : ''}`;
+            notifElement.style.display = 'flex';
+            notifElement.style.alignItems = 'flex-start';
+            notifElement.style.padding = '0.75rem 1rem';
+            notifElement.style.borderBottom = '1px solid #f1f5f9';
+            notifElement.style.color = '#1e293b';
+            notifElement.style.textDecoration = 'none';
+            notifElement.style.transition = 'background-color 0.2s';
+            
+            notifElement.innerHTML = `
+                <div style="margin-right: 0.75rem; color: ${notification.color || '#3b82f6'};">
+                    <i class="${notification.icon || 'fas fa-bell'}" style="font-size: 1.25rem;"></i>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 500; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${notification.title || 'Notifikasi Baru'}
+                    </div>
+                    <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.25rem;">
+                        ${notification.message || ''}
+                    </div>
+                    <div style="font-size: 0.75rem; color: #94a3b8;">
+                        <i class="far fa-clock"></i> ${notification.time || 'Baru saja'}
+                    </div>
+                </div>
+                ${!notification.is_read ? '<div class="unread-badge"></div>' : ''}
+            `;
+            
+            // Tambahkan event listener untuk menandai sebagai sudah dibaca
+            notifElement.addEventListener('click', async (e) => {
+                if (notification.id) {
+                    try {
+                        await fetch(`/admin/api/notifications/${notification.id}/read`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            credentials: 'same-origin'
+                        });
+                    } catch (error) {
+                        console.error('Gagal menandai notifikasi sebagai dibaca:', error);
+                    }
+                }
+            });
+            
+            dropdownContent.appendChild(notifElement);
+        });
     }
 
     // Tandai notifikasi sebagai dibaca
-    async function markAsReadDropdown(notificationId) {
+    async function markAsRead(notificationId) {
         try {
             await fetch(`/admin/api/notifications/${notificationId}/read`, {
                 method: 'POST',
@@ -1201,12 +1275,42 @@
         return colors[type] || colors['info'];
     }
 
-    // Update notifikasi setiap 10 detik
-    setInterval(updateNotificationCount, 10000);
+    // Inisialisasi polling notifikasi
+    function initNotificationPolling() {
+        // Hentikan polling yang sedang berjalan
+        if (notificationPolling) {
+            clearInterval(notificationPolling);
+        }
+        
+        // Muat notifikasi awal
+        loadDropdownNotifications();
+        
+        // Atur polling setiap 60 detik
+        notificationPolling = setInterval(() => {
+            const dropdown = document.getElementById('notificationDropdown');
+            if (dropdown && dropdown.classList.contains('show')) {
+                loadDropdownNotifications();
+            } else {
+                // Jika dropdown tidak terbuka, cukup perbarui hitungan
+                updateNotificationCount();
+            }
+        }, 60000);
+    }
     
-    // Initial update
-    updateNotificationCount();
-
+    // Inisialisasi saat dokumen siap
+    document.addEventListener('DOMContentLoaded', () => {
+        initNotificationPolling();
+        
+        // Tutup dropdown saat mengklik di luar
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('notificationDropdown');
+            const trigger = document.querySelector('.notification-trigger');
+            
+            if (dropdown && !dropdown.contains(e.target) && !trigger.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+    });
 
     // Fungsi logout
     function logout() {

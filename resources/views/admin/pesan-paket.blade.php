@@ -70,7 +70,15 @@
 <!-- Table Container -->
 <div class="table-container">
   <div class="table-header">
-    <div class="table-title">Daftar Pemesanan Paket</div>
+    <div class="table-title">
+      Daftar Pemesanan Paket
+      @if(($stat['menunggu'] ?? 0) > 0)
+        <span style="margin-left:10px; background:#fff; color:#FE9C03; border-radius:999px; padding:4px 10px; font-size:12px; border:1px solid #FE9C03; display:inline-flex; align-items:center; gap:6px;">
+          <i class="fas fa-bell"></i>
+          <span>{{ $stat['menunggu'] }} pesanan menunggu konfirmasi</span>
+        </span>
+      @endif
+    </div>
     <div class="table-info">📊 Total {{ $pemesanan->total() }} pemesanan 📈 Pembayaran Rp {{ number_format($sumPembayaran,0,',','.') }}</div>
   </div>
   
@@ -81,12 +89,22 @@
         <th>PAKET WISATA</th>
         <th>TANGGAL KEBERANGKATAN</th>
         <th>PESERTA</th>
+        <th>METODE BAYAR</th>
         <th>STATUS</th>
         <th>AKSI</th>
       </tr>
     </thead>
     <tbody id="bookingTableBody">
       @forelse($pemesanan as $row)
+        @php
+          $defaultMeetingPoint = 'Perum Tunggul Ametung Inside Blok B1';
+          $lowerPaket = strtolower($row->paket);
+          if (str_contains($lowerPaket, 'daily trip') || str_contains($lowerPaket, 'travel to malang')) {
+            $displayTitik = $defaultMeetingPoint;
+          } else {
+            $displayTitik = $row->titik_penjemputan ?? '-';
+          }
+        @endphp
         <tr>
           <td>
             <div class="customer-info">
@@ -109,7 +127,10 @@
           <td>
             <div>
               <strong>{{ \Carbon\Carbon::parse($row->tanggal_keberangkatan)->translatedFormat('d F Y') }}</strong><br>
-              <small style="color:#666;">&nbsp;</small>
+              <small style="color:#666;">
+                Titik jemput:
+                {{ $displayTitik }}
+              </small>
             </div>
           </td>
           <td>
@@ -119,31 +140,80 @@
             </div>
           </td>
           <td>
+            {{ $row->metode_pembayaran ?? '-' }}
+          </td>
+          <td>
             @php
+              $statusText = [
+                'menunggu' => 'Menunggu Konfirmasi',
+                'menunggu_pembayaran' => 'Menunggu Pembayaran',
+                'aktif' => 'Aktif',
+                'selesai' => 'Selesai',
+                'dikonfirmasi' => 'Dikonfirmasi',
+                'dibatalkan' => 'Dibatalkan'
+              ];
               $badge = 'status-menunggu';
-              if($row->status==='dikonfirmasi') $badge='status-dikonfirmasi';
+              if($row->status==='menunggu_pembayaran') $badge='status-menunggu-pembayaran';
+              elseif($row->status==='aktif') $badge='status-aktif';
+              elseif($row->status==='selesai') $badge='status-selesai';
+              elseif($row->status==='dikonfirmasi') $badge='status-dikonfirmasi';
               elseif($row->status==='dibatalkan') $badge='status-dibatalkan';
             @endphp
-            <span class="status-badge {{ $badge }}">{{ strtoupper($row->status) }}</span>
+            <span class="status-badge {{ $badge }}">
+              @if($row->status === 'menunggu' || $row->status === 'menunggu_pembayaran')
+                <i class="fas fa-clock"></i>
+              @elseif($row->status === 'aktif' || $row->status === 'dikonfirmasi')
+                <i class="fas fa-check-circle"></i>
+              @elseif($row->status === 'dibatalkan')
+                <i class="fas fa-times-circle"></i>
+              @elseif($row->status === 'selesai')
+                <i class="fas fa-check-circle"></i>
+              @endif
+              {{ $statusText[$row->status] ?? ucfirst($row->status) }}
+            </span>
           </td>
           <td>
             <div class="action-buttons">
-              <form method="POST" action="{{ route('admin.pemesanan.status',$row) }}">
-                @csrf
-                @method('PATCH')
-                <input type="hidden" name="status" value="dikonfirmasi">
-                <button class="action-btn btn-confirm" type="submit">KONFIRMASI</button>
-              </form>
-              <form method="POST" action="{{ route('admin.pemesanan.status',$row) }}">
-                @csrf
-                @method('PATCH')
-                <input type="hidden" name="status" value="dibatalkan">
-                <button class="action-btn btn-cancel" type="submit">TOLAK</button>
-              </form>
+              @if($row->status === 'menunggu')
+                {{-- Baru dipesan, admin hanya bisa konfirmasi atau tolak --}}
+                <form method="POST" action="{{ route('admin.pemesanan.status',$row) }}" onsubmit="return confirm('Konfirmasi pemesanan ini?')">
+                  @csrf
+                  @method('PATCH')
+                  <input type="hidden" name="status" value="dikonfirmasi">
+                  <button class="action-btn btn-confirm" type="submit" title="Konfirmasi">
+                    <i class="fas fa-check"></i>
+                    <span>Konfirmasi</span>
+                  </button>
+                </form>
+                <form method="POST" action="{{ route('admin.pemesanan.status',$row) }}" onsubmit="return confirm('Tolak pemesanan ini?')">
+                  @csrf
+                  @method('PATCH')
+                  <input type="hidden" name="status" value="dibatalkan">
+                  <button class="action-btn btn-cancel" type="submit" title="Tolak">
+                    <i class="fas fa-times"></i>
+                    <span>Tolak</span>
+                  </button>
+                </form>
+              @elseif($row->status === 'dikonfirmasi')
+                {{-- Sudah dikonfirmasi, menunggu / setelah pembayaran, admin bisa menandai selesai --}}
+                <form method="POST" action="{{ route('admin.pemesanan.status',$row) }}" onsubmit="return confirm('Tandai pemesanan ini sebagai selesai?')">
+                  @csrf
+                  @method('PATCH')
+                  <input type="hidden" name="status" value="selesai">
+                  <button class="action-btn btn-confirm" type="submit" title="Selesai">
+                    <i class="fas fa-check-double"></i>
+                    <span>Selesai</span>
+                  </button>
+                </form>
+              @endif
+
+              {{-- Tombol hapus tersedia di semua status --}}
               <form method="POST" action="{{ route('admin.pemesanan.destroy',$row) }}" onsubmit="return confirm('Hapus pemesanan ini?')">
                 @csrf
                 @method('DELETE')
-                <button class="action-btn btn-detail" type="submit">HAPUS</button>
+                <button class="action-btn btn-detail" type="submit" title="Hapus">
+                  <i class="fas fa-trash"></i>
+                </button>
               </form>
             </div>
           </td>
@@ -367,89 +437,100 @@
     color: #FE9C03;
   }
   
-  /* Status Badges */
-  .status-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
+  /* Status Badges - samakan gaya dengan badge di halaman testimoni */
+  .table-container .data-table tbody td .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
     font-size: 12px;
-    font-weight: 500;
-    text-transform: uppercase;
+    font-weight: 600;
+    min-width: 80px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-transform: none;
   }
-  
-  .status-menunggu {
-    background: #fff3cd;
+
+  .table-container .data-table tbody td .status-badge i {
+    font-size: 12px;
+  }
+
+  .table-container .data-table tbody td .status-menunggu,
+  .table-container .data-table tbody td .status-menunggu-pembayaran {
+    background-color: #fff3cd;
     color: #856404;
   }
-  
-  .status-dikonfirmasi {
-    background: #d1edff;
-    color: #0c5460;
+
+  .table-container .data-table tbody td .status-aktif,
+  .table-container .data-table tbody td .status-dikonfirmasi {
+    background-color: #d4edda;
+    color: #155724;
   }
-  
-  .status-dibatalkan {
-    background: #f8d7da;
+
+  .table-container .data-table tbody td .status-dibatalkan {
+    background-color: #f8d7da;
     color: #721c24;
+  }
+
+  .table-container .data-table tbody td .status-selesai {
+    background-color: #d1ecf1;
+    color: #0c5460;
   }
   
   /* Action Buttons */
   .action-buttons {
     display: flex;
-    gap: 8px;
+    gap: 6px;
+    flex-wrap: wrap;
   }
   
   .action-btn {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    font-size: 12px;
+    padding: 4px 12px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 11px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-transform: none;
+    letter-spacing: 0.3px;
+  }
+  
+  .action-btn i {
+    font-size: 12px;
   }
   
   .btn-confirm {
-    background: #28a745;
-    color: white;
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border-color: #bbf7d0;
   }
   
   .btn-confirm:hover {
-    background: #218838;
+    background-color: #dcfce7;
   }
   
   .btn-cancel {
-    background: #dc3545;
-    color: white;
+    background-color: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
   }
   
   .btn-cancel:hover {
-    background: #c82333;
+    background-color: #fee2e2;
   }
   
   .btn-detail {
-    background: #6c757d;
-    color: white;
+    background-color: #eff6ff;
+    color: #2563eb;
+    border-color: #bfdbfe;
   }
   
   .btn-detail:hover {
-    background: #545b62;
-  }
-  
-  .btn-chat {
-    background: #17a2b8;
-    color: white;
-  }
-  
-  .btn-chat:hover {
-    background: #138496;
-  }
-  
-  .btn-invoice {
-    background: #fd7e14;
-    color: white;
-  }
-  
-  .btn-invoice:hover {
-    background: #e66a00;
+    background-color: #dbeafe;
   }
   
   /* Responsive */

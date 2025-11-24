@@ -8,6 +8,35 @@ use Illuminate\Support\Facades\Log;
 
 class PemesananController extends Controller
 {
+    // Menampilkan riwayat pemesanan untuk user yang sedang login
+    public function riwayatUser()
+    {
+        $pemesanan = PemesananPaket::where('user_id', auth()->id())
+            ->latest()
+            ->get();
+
+        return view('riwayatpesan', compact('pemesanan'));
+    }
+
+    // User mengisi / mengubah metode pembayaran dari halaman riwayat
+    public function konfirmasiPembayaran(Request $request, PemesananPaket $pemesanan)
+    {
+        // Pastikan pemesanan milik user yang sedang login
+        if ($pemesanan->user_id !== auth()->id()) {
+            abort(403, 'Tidak boleh mengubah pemesanan orang lain');
+        }
+
+        $data = $request->validate([
+            'metode_pembayaran' => 'required|string|max:50',
+        ]);
+
+        $pemesanan->update([
+            'metode_pembayaran' => $data['metode_pembayaran'],
+        ]);
+
+        return back()->with('success', 'Metode pembayaran tersimpan. Silakan lakukan pembayaran sesuai petunjuk.');
+    }
+
     public function index(Request $request)
     {
         $q = PemesananPaket::query();
@@ -60,16 +89,25 @@ class PemesananController extends Controller
             'paket' => 'required|string|max:150',
             'peserta' => 'required|integer|min:1',
             'tanggal_keberangkatan' => 'required|date',
+            'titik_penjemputan' => 'nullable|string|max:255',
             'total' => 'nullable|integer|min:0',
             'catatan' => 'nullable|string',
         ]);
 
         try {
+            // Titik jemput / titik kumpul default untuk paket tertentu
+            $meetingPoint = $data['titik_penjemputan'] ?? null;
+            $paketLower = strtolower($data['paket']);
+            if (!$meetingPoint && (str_contains($paketLower, 'daily trip') || str_contains($paketLower, 'travel to malang'))) {
+                $meetingPoint = 'Perum Tunggul Ametung Inside Blok B1';
+            }
+
             $created = PemesananPaket::create([
                 'user_id' => auth()->id(),
                 'paket' => $data['paket'],
                 'peserta' => $data['peserta'],
                 'tanggal_keberangkatan' => $data['tanggal_keberangkatan'],
+                'titik_penjemputan' => $meetingPoint,
                 'total' => $data['total'] ?? 0,
                 'status' => 'menunggu',
                 'catatan' => $data['catatan'] ?? null,
@@ -80,6 +118,7 @@ class PemesananController extends Controller
                     'paket' => $data['paket'],
                     'peserta' => (int) $data['peserta'],
                     'tanggal_keberangkatan' => $data['tanggal_keberangkatan'],
+                    'titik_penjemputan' => $meetingPoint,
                     'total' => (int) ($data['total'] ?? 0),
                 ]);
         } catch (\Throwable $e) {

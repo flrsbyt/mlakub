@@ -3795,7 +3795,7 @@
     </section>
 
     <!-- Destinasi Section -->
-    <section class="destinasi-section">
+    <section class="destinasi-section" id="destinasi-opentrip">
         <div class="container">
             <div class="destinasi-content animate-on-scroll">
                 <h2 class="section-title">Destinasi <span class="highlight">Open Trip</span> Bromo</h2>
@@ -3909,7 +3909,7 @@
     </section>
 
     <!-- Facilities Section -->
-    <section class="facilities-section">
+    <section class="facilities-section" id="fasilitas-opentrip">
         <div class="container">
             <div class="facilities-content animate-on-scroll">
                 <h2 class="section-title">Fasilitas <span class="highlight">Open Trip</span> Bromo</h2>
@@ -4070,6 +4070,14 @@
                             <i class="fas fa-info-circle"></i>
                             <p>Silakan isi form booking di bawah ini. Setelah booking, kami akan menghubungi Anda untuk konfirmasi dan detail pembayaran.</p>
                         </div>
+                            <div style="margin-top: 10px; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
+                                <a href="#destinasi-opentrip" style="padding: 6px 12px; border-radius: 999px; border: 1px solid #FE9C03; font-size: 0.85rem; color: #FE9C03; text-decoration: none; background-color: #fff;">
+                                    Lihat Destinasi
+                                </a>
+                                <a href="#fasilitas-opentrip" style="padding: 6px 12px; border-radius: 999px; border: 1px solid #FE9C03; font-size: 0.85rem; color: #FE9C03; text-decoration: none; background-color: #fff;">
+                                    Lihat Fasilitas
+                                </a>
+                            </div>
                     </div>
                     
                     <div class="form-group">
@@ -4093,6 +4101,11 @@
                     <div class="form-group">
                         <label class="form-label">Tanggal Keberangkatan</label>
                         <input type="date" class="form-input" id="departureDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Titik Penjemputan</label>
+                        <input type="text" class="form-input" name="titik_penjemputan" id="pickupPoint" placeholder="Contoh: Jl. Mawar No. 12, RT. 01 RW. 01, Kel. Klojen, Kec. Klojen, Kota Malang" required>
                     </div>
 
                     <div class="booking-summary">

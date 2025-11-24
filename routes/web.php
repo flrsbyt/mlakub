@@ -57,6 +57,7 @@ Route::middleware(['auth'])
 
         // Kontak (admin)
         Route::get('/kontak', [KontakController::class, 'index'])->name('kontak');
+        Route::get('/kontak/testimoni', [KontakController::class, 'index'])->name('kontak.testimoni');
         Route::patch('/kontak/{pesanKontak}/status', [KontakController::class, 'ubahStatus'])->name('kontak.status');
         Route::delete('/kontak/{pesanKontak}', [KontakController::class, 'hapus'])->name('kontak.destroy');
 
@@ -85,17 +86,12 @@ Route::middleware(['auth'])
         // Notifications
         Route::get('/notifications', [AdminController::class, 'notifications'])->name('notifications');
         Route::get('/api/notifications', [AdminController::class, 'getNotifications'])->name('api.notifications');
-        Route::post('/api/notifications/{id}/read', [AdminController::class, 'markAsRead']);
-        Route::post('/api/notifications/read-all', [AdminController::class, 'markAllAsRead']);
-        Route::get('/demo-booking', [AdminController::class, 'demoBookingNotification'])->name('demo.booking');
+        Route::post('/notifications/{id}/read', [AdminController::class, 'markAsRead'])->name('notifications.mark');
+        Route::post('/notifications/read-all', [AdminController::class, 'markAllAsRead'])->name('notifications.markAllRead');
     });
 
-Route::get('/', function () {
-    if (Auth::check() && Auth::user()->role === 'admin') {
-        return redirect()->route('admin.dashboard');
-    }
-    return view('home');
-})->name('home');
+// Home routes
+Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::get('/paket-trip', function () {
     if (Auth::check() && Auth::user()->role === 'admin') {
@@ -144,8 +140,10 @@ Route::get('/kontak', function () {
     return view('kontakweb');
 })->name('kontak');
 
-// Form testimoni publik -> simpan ke DB
-Route::post('/kontak/testimoni', [KontakController::class, 'store'])->name('kontak.testimoni.store');
+// Form testimoni -> simpan ke DB (hanya untuk user yang login)
+Route::middleware('auth')->group(function () {
+    Route::post('/kontak/testimoni', [KontakController::class, 'store'])->name('kontak.testimoni.store');
+});
 
 // Pemesanan publik (bisa dipanggil dari semua halaman paket)
 Route::post('/pemesanan', [PemesananController::class, 'store'])->name('pemesanan.store');
@@ -156,9 +154,11 @@ Route::middleware('auth')->group(function () {
         return view('profil');
     })->name('profil');
 
-    Route::get('/riwayatpesan', function () {
-        return view('riwayatpesan');
-    })->name('riwayatpesan');
+    // Riwayat pemesanan user (ambil dari tabel pemesanan_paket)
+    Route::get('/riwayatpesan', [PemesananController::class, 'riwayatUser'])->name('riwayatpesan');
+
+    // User konfirmasi pembayaran (simpan metode pembayaran)
+    Route::post('/pemesanan/{pemesanan}/konfirmasi-pembayaran', [PemesananController::class, 'konfirmasiPembayaran'])->name('pemesanan.konfirmasi-pembayaran');
 
     Route::get('/riwayattesti', function () {
         return view('riwayattesti');

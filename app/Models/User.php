@@ -27,9 +27,16 @@ class User extends Authenticatable
     protected $hidden = ['password'];
 
     // Relasi dengan notifications
-    public function notifications(): HasMany
+    public function notifications()
     {
-        return $this->hasMany(Notification::class, 'notifiable_id')
-            ->where('notifiable_type', static::class);
+        return $this->hasMany(\App\Models\Notification::class, 'notifiable_id')
+            ->where('notifiable_type', get_class($this))
+            ->orderBy('created_at', 'desc');
+    }
+
+    // Relasi dengan pesan/testimoni
+    public function testimonials()
+    {
+        return $this->hasMany(PesanKontak::class, 'user_id');
     }
 }

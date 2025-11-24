@@ -100,12 +100,12 @@
     }
     
     .notification-item.unread:hover {
-        background-color: #ffedd5;  /* Slightly darker orange on hover for unread */
+        background-color: #ffedd5;
     }
 
     .notification-item.unread {
-        background: #fff7ed;  /* Light orange background for unread */
-        border-left: 1px solid #ffd8b3;  /* Lighter orange border */
+        background: #fff7ed;
+        border-left: 3px solid #ff8c00;
         box-shadow: 0 2px 8px rgba(255, 140, 0, 0.1);
         position: relative;
     }
@@ -117,35 +117,39 @@
     }
     
     .notification-item.read .item-title {
-        color: #64748b;  /* Muted color for read titles */
+        color: #64748b;
         font-weight: 500;
     }
     
     .notification-item.read .item-message {
-        color: #94a3b8;  /* Even more muted for read messages */
+        color: #94a3b8;
     }
 
     .item-icon-wrapper {
         position: relative;
         flex-shrink: 0;
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        background: #f1f5f9;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #64748b;
     }
 
     .item-icon {
-        font-size: 1rem;
+        font-size: 1.1rem;
     }
 
-    .item-icon.booking { color: #3b82f6; }
-    .item-icon.payment { color: #10b981; }
-    .item-icon.system { color: #8b5cf6; }
-    .item-icon.alert { color: #f59e0b; }
+    .bg-green-100 { background-color: #dcfce7; }
+    .text-green-600 { color: #16a34a; }
+    .bg-red-100 { background-color: #fee2e2; }
+    .text-red-600 { color: #dc2626; }
+    .bg-yellow-100 { background-color: #fef3c7; }
+    .text-yellow-600 { color: #ca8a04; }
+    .bg-blue-100 { background-color: #dbeafe; }
+    .text-blue-600 { color: #2563eb; }
+    .bg-gray-100 { background-color: #f3f4f6; }
+    .text-gray-600 { color: #4b5563; }
 
     .unread-dot {
         position: absolute;
@@ -167,16 +171,16 @@
         font-weight: 600;
         color: #1e293b;
         margin-bottom: 0.2rem;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         line-height: 1.3;
         transition: color 0.2s ease;
     }
 
     .item-message {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         color: #64748b;
         line-height: 1.4;
-        margin-bottom: 0.4rem;
+        margin-bottom: 0.5rem;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -186,8 +190,8 @@
     .item-meta {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        font-size: 0.7rem;
+        gap: 0.75rem;
+        font-size: 0.75rem;
         color: #94a3b8;
     }
 
@@ -197,36 +201,63 @@
         gap: 0.25rem;
     }
 
-    .item-status {
-        font-size: 0.65rem;
+    .item-id {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .item-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+
+    .action-btn {
+        padding: 0.4rem 0.9rem;
+        font-size: 0.8rem;
         font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 0.15rem 0.5rem;
-        border-radius: 4px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
     }
 
-    .status-new {
-        background: #fffbeb;
-        color: #d97706;
+    .btn-mark-read {
+        background: #ff8c00;
+        color: white;
     }
 
-    .status-read {
-        color: #94a3b8;
+    .btn-mark-read:hover {
+        background: #e07a00;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+    }
+
+    .btn-view {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-view:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
 
     .panel-footer {
-        padding: 1.5rem;
+        padding: 1.25rem 1.5rem;
         background: #fafbfc;
         border-top: 1px solid #f1f5f9;
-        display: flex;
-        gap: 0.75rem;
     }
 
     .footer-btn {
-        flex: 1;
-        padding: 12px 16px;
-        border-radius: 12px;
+        width: 100%;
+        padding: 12px 20px;
+        border-radius: 10px;
         font-weight: 600;
         font-size: 0.9rem;
         cursor: pointer;
@@ -235,28 +266,13 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
-    }
-
-    .btn-secondary {
-        background: white;
-        color: #64748b;
-        border: 2px solid #e2e8f0;
-    }
-
-    .btn-secondary:hover {
-        background: #f8fafc;
-        border-color: #cbd5e1;
-        transform: translateY(-1px);
-    }
-
-    .btn-primary {
         background: linear-gradient(135deg, #ff8c00, #ff7700);
         color: white;
         border: none;
         box-shadow: 0 4px 16px rgba(255,140,0,0.3);
     }
 
-    .btn-primary:hover {
+    .footer-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(255,140,0,0.4);
     }
@@ -277,6 +293,7 @@
         align-items: center;
         justify-content: center;
         color: #94a3b8;
+        font-size: 2rem;
     }
 
     .empty-title {
@@ -326,14 +343,27 @@
         animation: slideIn 0.3s ease;
     }
 
+    /* Pagination */
+    .pagination-wrapper {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #f1f5f9;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
-        .panel-footer {
+        .panel-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .item-actions {
             flex-direction: column;
         }
         
-        .footer-btn {
+        .action-btn {
             width: 100%;
+            justify-content: center;
         }
     }
 </style>
@@ -350,231 +380,244 @@
     </div>
     
     <div class="panel-content" id="notificationContent">
-        @if($notifications->count() > 0)
-            @foreach($notifications as $notification)
-                <div class="notification-item {{ !$notification->is_read ? 'unread' : 'read' }}" data-id="{{ $notification->id }}">
-                    <div class="item-icon {{ $notification->type }}">
-                        @if($notification->icon)
-                            <i class="{{ $notification->icon }}"></i>
-                        @else
-                            <i class="fas fa-bell"></i>
-                        @endif
-                        @if(!$notification->is_read)
-                            <div class="unread-dot"></div>
+        @forelse($notifications as $notification)
+            @php
+                $data = is_string($notification->data) ? json_decode($notification->data, true) : $notification->data;
+                $icon = $notification->icon ?? 'fas fa-bell';
+                $color = match($notification->color ?? 'primary') {
+                    'success' => 'bg-green-100 text-green-600',
+                    'danger' => 'bg-red-100 text-red-600',
+                    'warning' => 'bg-yellow-100 text-yellow-600',
+                    'info' => 'bg-blue-100 text-blue-600',
+                    default => 'bg-gray-100 text-gray-600'
+                };
+            @endphp
+            
+            <div class="notification-item {{ $notification->is_read ? 'read' : 'unread' }}" data-id="{{ $notification->id }}" data-read="{{ $notification->is_read ? '1' : '0' }}">
+                <div class="item-icon-wrapper {{ $color }}">
+                    <i class="{{ $icon }} item-icon"></i>
+                    @if(!$notification->is_read)
+                        <div class="unread-dot"></div>
+                    @endif
+                </div>
+                <div class="item-content">
+                    <div class="item-title">{{ $notification->title }}</div>
+                    <div class="item-message">{{ $notification->message }}</div>
+                    <div class="item-meta">
+                        <div class="item-time">
+                            <i class="far fa-clock"></i>
+                            {{ $notification->created_at->diffForHumans() }}
+                        </div>
+                        @if(isset($data['testimoni_id']))
+                        <div class="item-id">
+                            <i class="fas fa-hashtag"></i>
+                            ID: {{ $data['testimoni_id'] }}
+                        </div>
                         @endif
                     </div>
-                    <div class="item-content">
-                        <div class="item-title">{{ $notification->title }}</div>
-                        <div class="item-message">{{ $notification->message }}</div>
-                        <div class="item-meta">
-                            <div class="item-time">
-                                <i class="fas fa-clock"></i>
-                                {{ $notification->created_at->diffForHumans() }}
-                            </div>
-                            <div class="item-status {{ !$notification->is_read ? 'status-new' : 'status-read' }}">
-                                {{ !$notification->is_read ? 'Baru' : 'Dibaca' }}
-                            </div>
-                        </div>
+                    
+                    <div class="item-actions">
+                        @if(!$notification->is_read)
+                        <form action="{{ route('admin.notifications.mark', $notification->id) }}" method="POST" class="mark-as-read-form" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="action-btn btn-mark-read">
+                                <i class="fas fa-check"></i>
+                                Tandai Dibaca
+                            </button>
+                        </form>
+                        @endif
+                        
+                        @if(isset($data['url']))
+                        <a href="{{ $data['url'] }}" class="action-btn btn-view" target="_blank">
+                            <i class="fas fa-eye"></i>
+                            Lihat
+                        </a>
+                        @endif
                     </div>
                 </div>
-            @endforeach
-        @else
+            </div>
+        @empty
             <div class="empty-state">
                 <div class="empty-icon">
                     <i class="fas fa-bell-slash"></i>
                 </div>
                 <div class="empty-title">Tidak Ada Notifikasi</div>
-                <div class="empty-message">Belum ada notifikasi baru untuk saat ini.</div>
+                <div class="empty-message">Belum ada notifikasi untuk saat ini. Semua notifikasi yang Anda terima akan muncul di sini.</div>
             </div>
-        @endif
+        @endforelse
     </div>
     
+    @if($notifications->hasPages())
+    <div class="pagination-wrapper">
+        {{ $notifications->links() }}
+    </div>
+    @endif
+    
     <div class="panel-footer">
-        <button class="footer-btn btn-secondary" id="markAllRead" style="width: 100%;">
-            <i class="fas fa-check"></i>
-            Tandai Sudah Dibaca Semua
-        </button>
+        <form action="{{ route('admin.notifications.markAllRead') }}" method="POST" id="markAllReadForm">
+            @csrf
+            <button type="submit" class="footer-btn">
+                <i class="fas fa-check-double"></i>
+                Tandai Semua Sudah Dibaca
+            </button>
+        </form>
     </div>
 </div>
 
+@push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <script>
-    const notifications = [
-        {
-            id: 1,
-            type: 'booking',
-            title: 'Booking Baru - Bromo Sunrise',
-            message: 'Andi Wijaya melakukan booking untuk paket Bromo Sunrise tanggal 25 September 2025. Total: Rp 450.000',
-            time: '2 menit',
-            unread: true,
-            important: true
-        },
-        {
-            id: 2,
-            type: 'alert',
-            title: 'Peringatan Cuaca',
-            message: 'Hujan diprediksi di area Bromo besok pagi. Koordinasi dengan guide untuk antisipasi.',
-            time: '2 jam',
-            unread: true,
-            important: true
-        },
-        {
-            id: 3,
-            type: 'payment',
-            title: 'Pembayaran Pending',
-            message: 'Pembayaran untuk booking #BR2025-0917-012 masih pending. Batas waktu: 2 jam lagi.',
-            time: '1 hari',
-            unread: false,
-            important: true
-        },
-        {
-            id: 4,
-            type: 'booking',
-            title: 'Review Baru - 5 Bintang',
-            message: 'Sari Indah memberikan rating 5 bintang untuk paket Adventure Malang. "Tour guide sangat ramah dan profesional!"',
-            time: '3 jam',
-            unread: true,
-            important: false
-        },
-        {
-            id: 5,
-            type: 'payment',
-            title: 'Pembayaran Diterima',
-            message: 'Pembayaran untuk booking #BR2025-0918-001 telah dikonfirmasi. Status: Lunas',
-            time: '4 jam',
-            unread: true,
-            important: false
-        },
-        {
-            id: 6,
-            type: 'system',
-            title: 'Update Sistem',
-            message: 'Sistem pembayaran telah diperbarui. Fitur auto-konfirmasi pembayaran kini aktif.',
-            time: '5 jam',
-            unread: false,
-            important: false
-        },
-        {
-            id: 7,
-            type: 'booking',
-            title: 'Pembatalan Booking',
-            message: 'Booking #BR2025-0918-003 untuk paket Tumpak Sewu telah dibatalkan oleh customer. Refund sedang diproses.',
-            time: '1 hari',
-            unread: false,
-            important: true
-        }
-    ];
-
-    let currentTab = 'all';
-
-    function getIconByType(type) {
-        const icons = {
-            'booking': 'calendar-alt',
-            'payment': 'credit-card',
-            'system': 'cog',
-            'alert': 'exclamation-triangle'
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize toastr
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "5000"
         };
-        return icons[type] || 'bell';
-    }
 
-    function renderNotifications(filter = 'all') {
-        const container = document.getElementById('notificationContent');
-        let filteredNotifications = [];
-
-        if (filter === 'unread') {
-            filteredNotifications = notifications.filter(n => n.unread);
-        } else if (filter === 'read') {
-            filteredNotifications = notifications.filter(n => !n.unread);
-        } else {
-            filteredNotifications = [...notifications];
-        }
-
-        if (filteredNotifications.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">
-                        <i class="fas fa-bell-slash"></i>
-                    </div>
-                    <div class="empty-title">Tidak ada notifikasi</div>
-                    <div class="empty-message">Belum ada notifikasi ${filter === 'unread' ? 'yang belum dibaca' : ''} untuk saat ini</div>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = filteredNotifications.map((notification, index) => `
-            <div class="notification-item ${notification.unread ? 'unread' : 'read'}" data-id="${notification.id}" style="animation-delay: ${index * 0.1}s">
-                <div class="item-icon-wrapper">
-                    <div class="item-icon ${notification.type}">
-                        <i class="fas fa-${getIconByType(notification.type)}"></i>
-                    </div>
-                    ${notification.unread ? '<div class="unread-dot"></div>' : ''}
-                </div>
-                <div class="item-content">
-                    <div class="item-title">${notification.title}</div>
-                    <div class="item-message">${notification.message}</div>
-                    <div class="item-meta">
-                        <div class="item-time">
-                            <i class="fas fa-clock"></i>
-                            ${notification.time} lalu
-                        </div>
-                        <div class="item-status ${notification.unread ? 'status-new' : 'status-read'}">
-                            ${notification.unread ? 'Baru' : 'Dibaca'}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function updateBadge() {
-        const unreadCount = notifications.filter(n => n.unread).length;
-        const badge = document.getElementById('unreadBadge');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
-        if (unreadCount > 0) {
-            badge.textContent = `${unreadCount} baru`;
-            badge.style.display = 'block';
-        } else {
-            badge.textContent = 'Semua dibaca';
-        }
-    }
+        // Tab switching
+        document.querySelectorAll('.panel-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const filter = tab.dataset.tab;
+                const items = document.querySelectorAll('.notification-item');
+                
+                items.forEach(item => {
+                    const isRead = item.dataset.read === '1';
+                    
+                    if (filter === 'all') {
+                        item.style.display = 'flex';
+                    } else if (filter === 'unread' && !isRead) {
+                        item.style.display = 'flex';
+                    } else if (filter === 'read' && isRead) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                // Check if empty
+                const visibleItems = Array.from(items).filter(item => item.style.display !== 'none');
+                const content = document.getElementById('notificationContent');
+                
+                if (visibleItems.length === 0 && !content.querySelector('.empty-state')) {
+                    content.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-bell-slash"></i>
+                            </div>
+                            <div class="empty-title">Tidak ada notifikasi</div>
+                            <div class="empty-message">Belum ada notifikasi ${filter === 'unread' ? 'yang belum dibaca' : filter === 'read' ? 'yang sudah dibaca' : ''} untuk saat ini</div>
+                        </div>
+                    `;
+                }
+            });
+        });
 
-    // Tab switching
-    document.querySelectorAll('.panel-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            currentTab = tab.dataset.tab;
-            renderNotifications(currentTab);
+        // Handle mark all as read
+        const markAllForm = document.getElementById('markAllReadForm');
+        
+        if (markAllForm) {
+            markAllForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.success) {
+                        // Update UI
+                        document.querySelectorAll('.notification-item.unread').forEach(item => {
+                            item.classList.remove('unread');
+                            item.classList.add('read');
+                            item.dataset.read = '1';
+                            
+                            const unreadDot = item.querySelector('.unread-dot');
+                            if (unreadDot) unreadDot.remove();
+                            
+                            const markForm = item.querySelector('.mark-as-read-form');
+                            if (markForm) markForm.remove();
+                            
+                            const title = item.querySelector('.item-title');
+                            if (title) title.style.color = '#64748b';
+                            
+                            const message = item.querySelector('.item-message');
+                            if (message) message.style.color = '#94a3b8';
+                        });
+                        
+                        toastr.success('Semua notifikasi telah ditandai sebagai sudah dibaca');
+                    } else {
+                        throw new Error(data?.message || 'Gagal memperbarui notifikasi');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error(error.message || 'Terjadi kesalahan saat memperbarui notifikasi');
+                });
+            });
+        }
+
+        // Handle mark single as read
+        document.querySelectorAll('.mark-as-read-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+                const notificationItem = form.closest('.notification-item');
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.success) {
+                        // Update UI
+                        notificationItem.classList.remove('unread');
+                        notificationItem.classList.add('read');
+                        notificationItem.dataset.read = '1';
+                        
+                        const unreadDot = notificationItem.querySelector('.unread-dot');
+                        if (unreadDot) unreadDot.remove();
+                        
+                        form.remove();
+                        
+                        const title = notificationItem.querySelector('.item-title');
+                        if (title) title.style.color = '#64748b';
+                        
+                        const message = notificationItem.querySelector('.item-message');
+                        if (message) message.style.color = '#94a3b8';
+                        
+                        toastr.success('Notifikasi telah ditandai sebagai sudah dibaca');
+                    } else {
+                        throw new Error(data?.message || 'Gagal memperbarui notifikasi');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error(error.message || 'Terjadi kesalahan saat memperbarui notifikasi');
+                });
+            });
         });
     });
-
-    // Mark notification as read
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('.notification-item')) {
-            const item = e.target.closest('.notification-item');
-            const id = parseInt(item.dataset.id);
-            const notification = notifications.find(n => n.id === id);
-            
-            if (notification && notification.unread) {
-                notification.unread = false;
-                renderNotifications(currentTab);
-                updateBadge();
-            }
-        }
-    });
-
-    // Mark all as read
-    document.getElementById('markAllRead').addEventListener('click', () => {
-        notifications.forEach(n => n.unread = false);
-        renderNotifications(currentTab);
-        updateBadge();
-    });
-
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', function() {
-        renderNotifications();
-        updateBadge();
-    });
 </script>
+@endpush
 @endsection

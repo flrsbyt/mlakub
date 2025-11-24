@@ -3529,6 +3529,7 @@
         <input type="hidden" id="dailyPesertaHidden" name="peserta">
         <input type="hidden" id="dailyTanggalHidden" name="tanggal_keberangkatan">
         <input type="hidden" id="dailyTotalHidden" name="total">
+        <input type="hidden" id="dailyTitikHidden" name="titik_penjemputan" value="default">
     </form>
                     @if(Auth::check())
                     <div class="profile-dropdown">
@@ -3802,7 +3803,7 @@
     </section>
 
     <!-- Destinasi Section -->
-    <section class="destinasi-section">
+    <section class="destinasi-section" id="destinasi-daily">
         <div class="container">
             <div class="destinasi-content animate-on-scroll">
                 <h2 class="section-title">Destinasi <span class="highlight">Daily Trip</span> Bromo Sunrise</h2>
@@ -3916,7 +3917,7 @@
     </section>
 
     <!-- Facilities Section -->
-    <section class="facilities-section">
+    <section class="facilities-section" id="fasilitas-daily">
         <div class="container">
             <div class="facilities-content animate-on-scroll">
                 <h2 class="section-title">Fasilitas <span class="highlight">Daily Trip</span> Bromo Sunrise</h2>
@@ -4058,6 +4059,23 @@
                         <div class="info-card">
                             <i class="fas fa-info-circle"></i>
                             <p>Silakan isi form booking di bawah ini. Setelah booking, kami akan menghubungi Anda untuk konfirmasi dan detail pembayaran.</p>
+                        </div>
+                        <div style="margin-top: 10px; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
+                            <a href="#destinasi-daily" style="padding: 6px 12px; border-radius: 999px; border: 1px solid #FE9C03; font-size: 0.85rem; color: #FE9C03; text-decoration: none; background-color: #fff;">
+                                Lihat Destinasi
+                            </a>
+                            <a href="#fasilitas-daily" style="padding: 6px 12px; border-radius: 999px; border: 1px solid #FE9C03; font-size: 0.85rem; color: #FE9C03; text-decoration: none; background-color: #fff;">
+                                Lihat Fasilitas
+                            </a>
+                        </div>
+                        <div style="margin-bottom: 12px; padding: 10px 12px; border-radius: 10px; background:#FFF7E6; border:1px solid #FE9C03; display:flex; align-items:flex-start; gap:8px;">
+                            <div style="width:22px; height:22px; border-radius:50%; background:#FE9C03; display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0;">
+                                <i class="fas fa-map-marker-alt" style="font-size:12px;"></i>
+                            </div>
+                            <div style="font-size: 0.85rem; color: #333;">
+                                <div style="font-weight:600; margin-bottom:2px;">Titik Kumpul</div>
+                                <div>Perum Tunggul Ametung Inside Blok B1</div>
+                            </div>
                         </div>
                     </div>
                     
@@ -5145,6 +5163,7 @@
             document.getElementById('dailyPesertaHidden').value = participants;
             document.getElementById('dailyTanggalHidden').value = date;
             document.getElementById('dailyTotalHidden').value = totalCalc;
+            document.getElementById('dailyTitikHidden').value = 'Perum Tunggul Ametung Inside Blok B1';
             document.getElementById('dailyBookingForm').submit();
         }
 
@@ -5208,58 +5227,6 @@
         });
     </script>
 
-    <!-- Simple Booking Modal -->
-    <style>
-        .simple-booking-btn{position:fixed;right:20px;bottom:20px;background:#FE9C03;color:#fff;border:none;border-radius:30px;padding:12px 18px;font-weight:700;box-shadow:0 6px 18px rgba(254,156,3,.35);cursor:pointer;z-index:9999}
-        .simple-booking-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:10000;align-items:center;justify-content:center}
-        .simple-booking-card{background:#fff;border-radius:16px;padding:20px;max-width:360px;width:92%;box-shadow:0 10px 30px rgba(0,0,0,.12)}
-        .simple-booking-card h3{margin:0 0 12px 0}
-        .simple-booking-card .form-row{margin-bottom:12px}
-        .simple-booking-card input{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px}
-        .number-input{display:flex;align-items:center;gap:8px}
-        .number-input button{width:36px;height:36px;border:none;border-radius:8px;background:#f1f5f9;cursor:pointer;font-weight:700}
-        .summary{display:flex;justify-content:space-between;align-items:center;background:#fff7ed;border:1px dashed #fdba74;border-radius:12px;padding:10px 12px;margin-top:6px}
-        .simple-booking-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
-        .btn-cancel{background:#6c757d;color:#fff;border:none;border-radius:10px;padding:10px 14px}
-        .btn-submit{background:#FE9C03;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-weight:700}
-    </style>
-    <button class="simple-booking-btn" onclick="document.getElementById('simpleBookingDaily').style.display='flex'">Booking Sekarang</button>
-    <div class="simple-booking-modal" id="simpleBookingDaily" onclick="if(event.target===this)this.style.display='none'">
-        <div class="simple-booking-card">
-            <h3>Booking Daily Trip</h3>
-            <form method="POST" action="{{ route('pemesanan.store') }}">
-                @csrf
-                <input type="hidden" name="paket" value="Daily Trip Bromo Sunrise">
-                <input type="hidden" name="total" id="dtTotalHidden">
-                <div class="form-row">
-                    <label class="form-label">Jumlah Peserta</label>
-                    <div class="number-input">
-                        <button type="button" onclick="dtChange(-1)">-</button>
-                        <input id="dtParticipants" type="number" name="peserta" min="1" value="1" required oninput="dtUpdateTotal()">
-                        <button type="button" onclick="dtChange(1)">+</button>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <label class="form-label">Tanggal Keberangkatan</label>
-                    <input id="dtDate" type="date" name="tanggal_keberangkatan" required>
-                </div>
-                <div class="summary">
-                    <div id="dtTotalParticipants">1 orang</div>
-                    <div id="dtTotalLabel">Rp 355.000</div>
-                </div>
-                <div class="simple-booking-actions">
-                    <button type="button" class="btn-cancel" onclick="document.getElementById('simpleBookingDaily').style.display='none'">Batal</button>
-                    <button type="submit" class="btn-submit">Kirim</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <script>
-        (function(){
-            const pricePerPerson = 350000; const adminFee = 5000;
-            const date = document.getElementById('dtDate');
-            if(date){
-                const t = new Date(); t.setDate(t.getDate()+1);
                 date.min = t.toISOString().split('T')[0];
             }
             window.dtChange = function(n){

@@ -2449,6 +2449,10 @@
                 </div>
             </div>
         </div>
+        <!-- Testimonial Section -->
+        <div class="container">
+            @include('components.testimonial-section')
+        </div>
     </main>
 
     <!-- Gallery -->

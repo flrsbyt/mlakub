@@ -5,18 +5,25 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Notification;
+use App\Models\PemesananPaket;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
+    private function authorizeAdmin()
+    {
+        $user = Auth::user();
+        if (!$user || $user->role !== 'admin') {
+            abort(403, 'Hanya admin yang dapat mengakses fitur ini');
+        }
+    }
+
     // 🔹 Dashboard
     public function dashboard()
     {
         // Cek apakah user memiliki role admin
-        if (Auth::user()->role !== 'admin') {
-            return redirect()->route('home')->with('error', 'Anda tidak memiliki akses ke halaman admin');
-        }
+        $this->authorizeAdmin();
 
         $totalUsers = User::count();
         $totalAdmins = User::where('role', 'admin')->count();
@@ -144,33 +151,63 @@ class AdminController extends Controller
         return view('admin.profile', compact('user'));
     }
 
-    // 🔹 Notifications
+    // 🔹 Notifications (dropdown header) - gunakan data pemesanan paket
     public function getNotifications()
     {
-        $user = Auth::user();
-        $notifications = $user->notifications()
-            ->orderBy('created_at', 'desc')
-            ->take(10)
-            ->get()
-            ->map(function ($notification) {
-                $createdAt = $notification->created_at;
-                return [
-                    'id' => $notification->id,
-                    'title' => $notification->title,
-                    'message' => $notification->message,
-                    'type' => $notification->type ?? 'system',
-                    'icon' => $notification->icon ?? 'fas fa-bell',
-                    'is_read' => (bool) $notification->is_read,
-                    'time' => $createdAt ? $createdAt->diffForHumans() : '',
-                    'created_at' => $createdAt ? $createdAt->format('Y-m-d H:i:s') : null
-                ];
-            });
+        $this->authorizeAdmin();
 
-        $unreadCount = $user->notifications()->where('is_read', false)->count();
+        // Ambil pemesanan terbaru, utamakan yang status 'menunggu'
+        $pending = PemesananPaket::with('user')
+            ->orderByRaw("CASE WHEN status = 'menunggu' THEN 0 ELSE 1 END")
+            ->orderByDesc('created_at')
+            ->take(10)
+            ->get();
+
+        $notifications = $pending->map(function (PemesananPaket $pemesanan) {
+            $userName = optional($pemesanan->user)->username ?? '-';
+            $tanggal = $pemesanan->tanggal_keberangkatan
+                ? $pemesanan->tanggal_keberangkatan
+                : null;
+
+            $createdAt = $pemesanan->created_at;
+
+            $statusLabel = match ($pemesanan->status) {
+                'menunggu' => 'Menunggu Konfirmasi',
+                'dikonfirmasi' => 'Menunggu Pembayaran',
+                'selesai' => 'Selesai',
+                'dibatalkan' => 'Dibatalkan',
+                default => ucfirst($pemesanan->status),
+            };
+
+            return [
+                'id' => $pemesanan->id,
+                'title' => 'Pemesanan Baru - ' . $pemesanan->paket,
+                'message' => sprintf(
+                    '%s memesan %s (%d orang) untuk tanggal %s.',
+                    $userName,
+                    $pemesanan->paket,
+                    $pemesanan->peserta,
+                    $tanggal ? date('d/m/Y', strtotime($tanggal)) : '-'
+                ),
+                'type' => 'booking',
+                'icon' => 'fas fa-calendar-check',
+                'color' => $pemesanan->status === 'menunggu' ? '#16a34a' : '#64748b',
+                // Anggap semua notifikasi booking sebagai belum dibaca jika status masih 'menunggu'
+                'is_read' => $pemesanan->status !== 'menunggu',
+                'time' => $createdAt ? $createdAt->diffForHumans() : 'Baru saja',
+                'created_at' => $createdAt ? $createdAt->format('Y-m-d H:i:s') : null,
+                'data' => [
+                    'url' => route('admin.pesan-paket', ['status' => 'menunggu']),
+                ],
+            ];
+        });
+
+        $unreadCount = PemesananPaket::where('status', 'menunggu')->count();
 
         return response()->json([
+            'success' => true,
             'notifications' => $notifications,
-            'unread_count' => $unreadCount
+            'unread_count' => $unreadCount,
         ]);
     }
 

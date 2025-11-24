@@ -1775,39 +1775,57 @@
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            background: url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80') center/cover;
             position: absolute;
             top: -40px;
             left: 50%;
             transform: translateX(-50%);
-            border: 4px solid white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .testimonial-card:nth-child(2) .testimonial-avatar {
-            background: url('https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80') center/cover;
-        }
-
-        .testimonial-card:nth-child(3) .testimonial-avatar {
-            background: url('https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80') center/cover;
         }
 
         .avatar-ring {
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            right: -8px;
-            bottom: -8px;
-            border: 3px solid #FE9C03;
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
-            opacity: 0.6;
+            background: linear-gradient(45deg, #FE9C03, #FF6B35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border: 3px solid white;
         }
 
-        .testimonial-name {
-            font-size: 18px;
+        .avatar-initial {
+            width: 90%;
+            height: 90%;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
             font-weight: bold;
-            color: #333;
-            margin: 30px 0 15px;
+            color: #FE9C03;
+            text-transform: uppercase;
+        }
+        
+        .testimonial-content {
+            margin-top: 20px;
+        }
+
+        .testimonial-rating {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 15px 0;
+        }
+
+        .star {
+            color: #FFD700;
+            font-size: 18px;
+        }
+
+        .star.empty {
+            color: #e2e8f0;
         }
 
         .testimonial-text {
@@ -1817,19 +1835,41 @@
             font-style: italic;
         }
 
-        .testimonial-rating {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
+        .testimonial-info {
+            margin-top: 20px;
         }
 
-        .star {
-            color: #FE9C03;
-            font-size: 18px;
+        .testimonial-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
         }
 
-        .star.empty {
+        .testimonial-date {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .no-testimonials {
+            text-align: center;
+            padding: 40px 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            grid-column: 1 / -1;
+        }
+
+        .no-testimonials i {
+            font-size: 3rem;
             color: #ddd;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .no-testimonials p {
+            color: #666;
+            font-size: 1.1rem;
+            margin: 0;
         }
 
         /* Why Choose Us */
@@ -2632,52 +2672,42 @@
     <!-- Testimonials -->
     <section class="testimonials">
         <div class="container animate-on-scroll">
-            <h2>Apa <span>Kata </span>Mereka?</h2>
+            <h2>Apa <span>Kata Mereka?</span></h2>
             <div class="testimonial-grid">
-                <div class="testimonial-card animate-on-scroll">
-                    <div class="testimonial-avatar">
-                        <div class="avatar-ring"></div>
+                @if(isset($testimonials) && $testimonials->count() > 0)
+                    @foreach($testimonials as $testimonial)
+                    <div class="testimonial-card animate-on-scroll">
+                        <div class="testimonial-avatar">
+                            <div class="avatar-ring">
+                                <div class="avatar-initial">
+                                    {{ strtoupper(substr($testimonial->nama, 0, 1)) }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="testimonial-content">
+                            <div class="testimonial-rating">
+                                @for($i = 1; $i <= 5; $i++)
+                                    @if($i <= $testimonial->rating)
+                                        <i class="fas fa-star star"></i>
+                                    @else
+                                        <i class="fas fa-star star empty"></i>
+                                    @endif
+                                @endfor
+                            </div>
+                            <p class="testimonial-text">{{ $testimonial->keterangan }}</p>
+                            <div class="testimonial-info">
+                                <h4 class="testimonial-name">{{ $testimonial->nama }}</h4>
+                                <span class="testimonial-date">{{ $testimonial->created_at->format('d M Y') }}</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="testimonial-name">Sarah Jessica</div>
-                    <div class="testimonial-text">Sangat puas dengan pelayanan MlakuBromo! Guide yang ramah, penginapan nyaman, dan yang terpenting pemandangan yang luar biasa indah. Highly recommended!</div>
-                    <div class="testimonial-rating">
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
+                    @endforeach
+                @else
+                    <div class="no-testimonials">
+                        <i class="far fa-comment-dots"></i>
+                        <p>Belum ada testimoni yang tersedia. Jadilah yang pertama memberikan testimoni!</p>
                     </div>
-                </div>
-                
-                <div class="testimonial-card animate-on-scroll">
-                    <div class="testimonial-avatar">
-                        <div class="avatar-ring"></div>
-                    </div>
-                    <div class="testimonial-name">Michael Johnson</div>
-                    <div class="testimonial-text">Pengalaman yang tak terlupakan! Tim MlakuBromo sangat profesional dan membantu. Sunrise di Bromo benar-benar spektakuler. Terima kasih!</div>
-                    <div class="testimonial-rating">
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star empty"></i>
-                    </div>
-                </div>
-                
-                <div class="testimonial-card animate-on-scroll">
-                    <div class="testimonial-avatar">
-                        <div class="avatar-ring"></div>
-                    </div>
-                    <div class="testimonial-name">Amanda Smith</div>
-                    <div class="testimonial-text">Pelayanan excellent! Dari awal booking hingga selesai trip, semuanya berjalan lancar. Guide yang berpengalaman dan ramah. Pasti akan kembali lagi!</div>
-                    <div class="testimonial-rating">
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                    </div>
-                </div>
+                @endif
             </div>
         </div>
     </section>

@@ -1,44 +1,364 @@
 @extends('admin.layouts.app')
 
 @section('title', 'Manajemen Kontak')
-@section('page-title', 'Portal Kontak')
-@section('page-subtitle', 'Kelola semua informasi kontak dan pesan dari pengunjung dalam satu tempat')
+@section('page-title', 'Manajemen Kontak')
+@section('page-subtitle', 'Kelola informasi kontak dan pesan pengunjung dengan mudah')
 
 @section('content')
 <style>
-        /* Contact page specific styles */
-        .contact-container {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        .page-content {
+            padding: 24px;
             max-width: 1200px;
             margin: 0 auto;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background: #ff9500;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #e6860a;
+            transform: translateY(-1px);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #d1d5db;
+            color: #4b5563;
+        }
+        
+        .btn-outline:hover {
+            background: #f3f4f6;
+        }
+        
+        .btn-sm {
+            padding: 4px 12px;
+            font-size: 13px;
+        }
+        
+        .btn i {
+            font-size: 14px;
+        }
+        
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th,
+        .table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+        }
+        
+        .table td {
+            font-size: 14px;
+            color: #333;
+            vertical-align: middle;
+        }
+        
+        .table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+        }
+        
+        .badge-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .badge-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .badge-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .btn-view {
+            background: #e9ecef;
+            color: #495057;
+        }
+        
+        .btn-view:hover {
+            background: #dee2e6;
+        }
+        
+        .btn-reply {
+            background: #e6f7ff;
+            color: #0056b3;
+        }
+        
+        .btn-reply:hover {
+            background: #d0ebff;
+        }
+        
+        .btn-delete {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .btn-delete:hover {
+            background: #f5c6cb;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #495057;
+            font-size: 14px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #ff9500;
+            box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1);
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        /* Contact Cards */
+        .contact-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .contact-card {
+            background: white;
+            border-radius: 12px;
             padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .contact-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .contact-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 16px;
+            color: white;
+        }
+        
+        .contact-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .contact-value {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-content {
+                padding: 16px;
+            }
+            
+            .section {
+                padding: 16px;
+            }
+            
+            .contact-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 4px;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        /* Modern Contact Page Styles */
+        .contact-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        .page-header {
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+        
+        .page-header h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-header p {
+            color: #718096;
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
         }
 
         /* Contact Layout */
         .contact-layout {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 48px;
-            margin-bottom: 64px;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .contact-layout {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* Contact Info Cards */
         .contact-info {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+        
+        .contact-section {
+            background: #fff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f0f4f8;
         }
 
         .contact-card {
-            background: white;
-            border-radius: 20px;
-            padding: 32px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            border: 1px solid #f1f5f9;
-            transition: all 0.4s ease;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+            background: #fff;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            text-align: left;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
             cursor: pointer;
+        }
+        
+        .contact-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-color: #cbd5e0;
         }
 
         .contact-card::before {
@@ -63,79 +383,89 @@
         }
 
         .contact-icon {
-            width: 72px;
-            height: 72px;
-            background: #fff7ed;
-            border-radius: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 0.75rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 24px;
-            font-size: 2rem;
-            transition: all 0.3s ease;
+            font-size: 1.5rem;
+            color: white;
+            flex-shrink: 0;
         }
 
         .whatsapp-icon {
-            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            background: linear-gradient(135deg, #25D366, #128C7E);
         }
 
         .instagram-icon {
-            background: linear-gradient(135deg, #fdf2f8, #fce7f3);
+            background: linear-gradient(45deg, #833AB4, #E1306C, #FCAF45);
         }
 
         .email-icon {
-            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
         }
 
         .facebook-icon {
-            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            background: linear-gradient(135deg, #1877F2, #0A58CA);
         }
 
         .contact-card:hover .contact-icon {
             transform: scale(1.1);
         }
 
+        .contact-content {
+            flex: 1;
+        }
+        
         .contact-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
         }
 
         .contact-value {
-            color: #64748b;
-            font-size: 1rem;
+            color: #718096;
+            font-size: 0.9rem;
             font-weight: 500;
-            margin-bottom: 20px;
+            margin-bottom: 0.5rem;
+            word-break: break-all;
         }
 
         .contact-link {
-            display: inline-block;
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #f8fafc;
+            color: #4b5563;
             text-decoration: none;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            transform: translateY(0);
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .contact-link i {
+            font-size: 1rem;
         }
 
         .contact-link:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+            background: #f1f5f9;
+            color: #1e40af;
+            border-color: #bfdbfe;
         }
 
         /* Contact Form */
         .contact-form {
             background: white;
-            border-radius: 20px;
-            padding: 48px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            border: 1px solid #f1f5f9;
-            position: relative;
-            overflow: hidden;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            height: 100%;
         }
 
         .contact-form::before {
@@ -150,54 +480,68 @@
         }
 
         .form-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 32px;
-            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f0f4f8;
         }
 
         .form-group {
-            margin-bottom: 28px;
+            margin-bottom: 1.25rem;
             position: relative;
         }
 
         .form-label {
             display: block;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
         }
 
         .form-input {
             width: 100%;
-            padding: 16px 20px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: #fafbfc;
-            position: relative;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 0.9375rem;
+            transition: all 0.2s ease;
+            background: #fff;
+            color: #2d3748;
         }
 
         .form-input:focus {
             outline: none;
             border-color: #3b82f6;
-            background: white;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-            transform: translateY(-2px);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
 
         .form-textarea {
             resize: vertical;
-            min-height: 140px;
+            min-height: 120px;
             font-family: inherit;
+            line-height: 1.5;
         }
 
         .form-button {
             width: 100%;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            background: #3b82f6;
+            color: white;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 0.5rem;
+        }
+        
+        .form-button:hover {
+            background: #2563eb;
+        }
             color: white;
             border: none;
             padding: 18px 32px;
@@ -511,14 +855,228 @@
         }
     </style>
 
-<!-- Main Content -->
-<div class="contact-container">
+<div class="page-content">
+    <!-- Contact Information Section -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Kontak Kami</h2>
+        </div>
+        
+        <div class="contact-cards">
+            <!-- WhatsApp -->
+            <div class="contact-card">
+                <div class="contact-icon" style="background: linear-gradient(135deg, #25D366, #128C7E);">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <h3 class="contact-title">WhatsApp</h3>
+                <p class="contact-value">+62 812-3456-7890</p>
+                <a href="https://wa.me/6281234567890" target="_blank" class="btn btn-outline btn-sm">
+                    <i class="fas fa-paper-plane"></i> Kirim Pesan
+                </a>
+            </div>
+            
+            <!-- Email -->
+            <div class="contact-card">
+                <div class="contact-icon" style="background: linear-gradient(135deg, #4F46E5, #7C3AED);">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h3 class="contact-title">Email</h3>
+                <p class="contact-value">info@mlakub.com</p>
+                <a href="mailto:info@mlakub.com" class="btn btn-outline btn-sm">
+                    <i class="fas fa-envelope"></i> Kirim Email
+                </a>
+            </div>
+            
+            <!-- Instagram -->
+            <div class="contact-card">
+                <div class="contact-icon" style="background: linear-gradient(45deg, #833AB4, #E1306C, #FCAF45);">
+                    <i class="fab fa-instagram"></i>
+                </div>
+                <h3 class="contact-title">Instagram</h3>
+                <p class="contact-value">@mlakub_travel</p>
+                <a href="https://instagram.com/mlakub_travel" target="_blank" class="btn btn-outline btn-sm">
+                    <i class="fab fa-instagram"></i> Kunjungi
+                </a>
+            </div>
+            
+            <!-- Facebook -->
+            <div class="contact-card">
+                <div class="contact-icon" style="background: linear-gradient(135deg, #1877F2, #0A58CA);">
+                    <i class="fab fa-facebook-f"></i>
+                </div>
+                <h3 class="contact-title">Facebook</h3>
+                <p class="contact-value">Mlakub Travel</p>
+                <a href="https://facebook.com/mlakubtravel" target="_blank" class="btn btn-outline btn-sm">
+                    <i class="fab fa-facebook-f"></i> Kunjungi
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contact Form Section -->
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Kirim Pesan</h2>
+        </div>
+        
+        <form id="contactForm" class="contact-form">
+            <div class="form-group">
+                <label for="name" class="form-label">Nama Lengkap</label>
+                <input type="text" id="name" class="form-control" placeholder="Masukkan nama lengkap" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" class="form-control" placeholder="email@contoh.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="subject" class="form-label">Subjek</label>
+                <input type="text" id="subject" class="form-control" placeholder="Subjek pesan" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="message" class="form-label">Pesan</label>
+                <textarea id="message" class="form-control" rows="4" placeholder="Tulis pesan Anda di sini..." required></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i> Kirim Pesan
+            </button>
+        </form>
+    </div>
+    
+    <!-- Messages List Section -->
+    <div class="section">
+        <div class="section-header" style="border-bottom: 1px solid #e9ecef; padding-bottom: 16px; margin-bottom: 20px;">
+            <h2 class="section-title">Pesan Masuk</h2>
+            <div style="display: flex; gap: 12px;">
+                <div style="position: relative;">
+                    <input type="text" class="form-control" placeholder="Cari pesan..." style="padding-left: 36px; width: 240px;">
+                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
+                </div>
+                <button class="btn btn-outline">
+                    <i class="fas fa-sync-alt"></i> Segarkan
+                </button>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nama</th>
+                        <th>Email</th>
+                        <th>Subjek</th>
+                        <th>Tanggal</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Example row -->
+                    <tr>
+                        <td>John Doe</td>
+                        <td>john@example.com</td>
+                        <td>Pertanyaan tentang paket wisata</td>
+                        <td>24 Nov 2025</td>
+                        <td><span class="badge badge-warning">Menunggu</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-view btn-sm">
+                                    <i class="far fa-eye"></i>
+                                </button>
+                                <button class="btn btn-reply btn-sm">
+                                    <i class="fas fa-reply"></i>
+                                </button>
+                                <button class="btn btn-delete btn-sm">
+                                    <i class="far fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Add more rows as needed -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e9ecef;">
+            <div>
+                <p style="font-size: 14px; color: #6c757d;">
+                    Menampilkan <span style="font-weight: 600;">1</span> sampai <span style="font-weight: 600;">10</span> dari <span style="font-weight: 600;">24</span> hasil
+                </p>
+            </div>
+            <div style="display: flex; gap: 4px;">
+                <button class="btn btn-outline btn-sm">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="btn btn-sm" style="background: #ff9500; color: white;">1</button>
+                <button class="btn btn-outline btn-sm">2</button>
+                <button class="btn btn-outline btn-sm">3</button>
+                <span class="btn btn-outline btn-sm" style="border: none; cursor: default;">...</span>
+                <button class="btn btn-outline btn-sm">8</button>
+                <button class="btn btn-outline btn-sm">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-        <!-- Messages Section -->
-        <div class="messages-section">
-            <div class="section-header">
-                <h2 class="section-title">Pesan Masuk</h2>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Contact Form Submission
+        const contactForm = document.getElementById('contactForm');
+        if (contactForm) {
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form values
+                const name = document.getElementById('name').value;
+                const email = document.getElementById('email').value;
+                const subject = document.getElementById('subject').value;
+                const message = document.getElementById('message').value;
+                
+                // Here you would typically send the data to your server
+                console.log('Form submitted:', { name, email, subject, message });
+                
+                // Show success message
+                alert('Pesan Anda telah terkirim! Kami akan segera menghubungi Anda.');
+                
+                // Reset form
+                this.reset();
+            });
+        }
+        
+        // Function to view message details
+        function viewMessage(id) {
+            // In a real application, you would fetch the message details from the server
+            alert('Viewing message with ID: ' + id);
+        }
+        
+        // Function to delete a message
+        function deleteMessage(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus pesan ini?')) {
+                // In a real application, you would send a delete request to the server
+                console.log('Deleting message with ID:', id);
+                alert('Pesan berhasil dihapus');
+            }
+        }
+        
+        // Make functions available globally
+        window.viewMessage = viewMessage;
+        window.deleteMessage = deleteMessage;
+    });
+</script>
+                <div class="btn-group">
+                    <a href="{{ route('admin.kontak') }}" class="btn {{ request('status') == null ? 'btn-primary' : 'btn-outline-primary' }}">Semua ({{ $stat['total'] }})</a>
+                    <a href="{{ route('admin.kontak', ['status' => 'menunggu']) }}" class="btn {{ request('status') == 'menunggu' ? 'btn-warning' : 'btn-outline-warning' }}">Menunggu ({{ $stat['menunggu'] }})</a>
+                    <a href="{{ route('admin.kontak', ['status' => 'diterima']) }}" class="btn {{ request('status') == 'diterima' ? 'btn-success' : 'btn-outline-success' }}">Diterima ({{ $stat['diterima'] }})</a>
+                    <a href="{{ route('admin.kontak', ['status' => 'ditolak']) }}" class="btn {{ request('status') == 'ditolak' ? 'btn-danger' : 'btn-outline-danger' }}">Ditolak ({{ $stat['ditolak'] }})</a>
                 <div class="messages-stats">
                     <div class="stat-item">
                         <div class="stat-number" id="totalMessages">{{ $stat['total'] ?? 0 }}</div>

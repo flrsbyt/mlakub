@@ -2375,6 +2375,11 @@
         </div>
     </section>
 
+    <!-- Testimonial Section -->
+    <div class="container">
+        @include('components.testimonial-section')
+    </div>
+
     <!-- Gallery -->
     <section class="gallery">
         <div class="container animate-on-scroll">

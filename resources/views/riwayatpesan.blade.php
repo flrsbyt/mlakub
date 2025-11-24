@@ -1334,27 +1334,32 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
-            text-transform: uppercase;
+            text-transform: none; /* jangan paksa uppercase */
         }
 
+        /* Warna badge disamakan dengan riwayat testimoni: flat + stroke tipis */
         .status-aktif {
-            background: linear-gradient(135deg, #ff8c00, #ffa500);
-            color: white;
+            background: #fff3cd;
+            color: #ff8c00;
+            border: 1px solid #ffeaa7;
         }
 
         .status-selesai {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
+            background: #e6f3ff;
+            color: #0066cc;
+            border: 1px solid #cde0ff;
         }
 
         .status-pending {
-            background: linear-gradient(135deg, #ffc107, #fd7e14);
-            color: white;
+            background: #fff3cd;
+            color: #ff8c00;
+            border: 1px solid #ffeaa7;
         }
 
         .status-payment {
-            background: linear-gradient(135deg, #17a2b8, #007bff);
-            color: white;
+            background: #e6f3ff;
+            color: #0066cc;
+            border: 1px solid #cde0ff;
         }
 
         .detail-btn {
@@ -3019,113 +3024,92 @@
                 <div class="table-header-card">
                     <div class="table-header-row">
                         <div class="table-header-cell">Nama</div>
-                        <div class="table-header-cell">Nama Paket</div>
-                        <div class="table-header-cell">Tanggal</div>
+                        <div class="table-header-cell">Paket & Tanggal</div>
                         <div class="table-header-cell">Jumlah Orang</div>
+                        <div class="table-header-cell">Titik Penjemputan</div>
+                        <div class="table-header-cell">Total</div>
                         <div class="table-header-cell">Metode Pembayaran</div>
-                        <div class="table-header-cell">Harga</div>
                         <div class="table-header-cell">Status</div>
                         <div class="table-header-cell">Detail</div>
                     </div>
                 </div>
 
-                <!-- Data Row Cards -->
-                <!-- Status: Menunggu Konfirmasi -->
-                <div class="table-row-card">
-                    <div class="table-data-row">
-                        <div class="table-data-cell">
-                            <div class="user-info">
-                                <img src="{{ asset('images/profile.png') }}" alt="Kanya Neisya" class="user-avatar">
-                                <span class="user-name">Kanya Neisya</span>
+                <!-- Data Row Cards dari database -->
+                @forelse($pemesanan ?? [] as $row)
+                    @php
+                        // Mapping teks status untuk user
+                        $statusText = [
+                            'menunggu' => 'Menunggu Konfirmasi',
+                            'dikonfirmasi' => 'Menunggu Pembayaran', // sudah dikonfirmasi admin, user belum bayar
+                            'selesai' => 'Selesai',
+                            'dibatalkan' => 'Dibatalkan',
+                        ];
+                        // Mapping kelas badge (warna)
+                        // Untuk dikonfirmasi (menunggu pembayaran) kita pakai style yang sama dengan menunggu
+                        $badgeClass = 'status-pending';
+                        if ($row->status === 'selesai') $badgeClass = 'status-selesai';
+                        elseif ($row->status === 'dibatalkan') $badgeClass = 'status-cancelled';
+
+                        // Titik penjemputan / titik kumpul
+                        $defaultMeetingPoint = 'Perum Tunggul Ametung Inside Blok B1';
+                        $lowerPaket = strtolower($row->paket);
+                        if (str_contains($lowerPaket, 'daily trip') || str_contains($lowerPaket, 'travel to malang')) {
+                            $displayTitik = $defaultMeetingPoint;
+                        } else {
+                            $displayTitik = $row->titik_penjemputan ?? '-';
+                        }
+                    @endphp
+                    <div class="table-row-card">
+                        <div class="table-data-row">
+                            <div class="table-data-cell">
+                                <div class="user-info">
+                                    <img src="{{ asset('images/profile.png') }}" alt="{{ auth()->user()->username ?? 'User' }}" class="user-avatar">
+                                    <span class="user-name">{{ auth()->user()->username ?? '-' }}</span>
+                                </div>
+                            </div>
+                            <div class="table-data-cell">
+                                <div style="font-weight: 600; line-height: 1.2;">
+                                    {{ $row->paket }}<br>
+                                    <span style="font-size: 12px; color: #666; display: inline-block; margin-top: 2px;">
+                                        {{ \Carbon\Carbon::parse($row->tanggal_keberangkatan)->format('d/m/Y') }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="table-data-cell">{{ $row->peserta }} Orang</div>
+                            <div class="table-data-cell">{{ $displayTitik }}</div>
+                            <div class="table-data-cell">{{ number_format($row->total,0,',','.') }}</div>
+                            <div class="table-data-cell">{{ $row->metode_pembayaran ?? '-' }}</div>
+                            <div class="table-data-cell">
+                                <span class="status-badge {{ $badgeClass }}">
+                                    {{ $statusText[$row->status] ?? ucfirst($row->status) }}
+                                </span>
+                            </div>
+                            <div class="table-data-cell">
+                                <button class="detail-btn"
+                                        onclick="openDetailModal(this)"
+                                        data-id="{{ $row->id }}"
+                                        data-paket="{{ $row->paket }}"
+                                        data-tanggal="{{ \Carbon\Carbon::parse($row->tanggal_keberangkatan)->format('d/m/Y') }}"
+                                        data-peserta="{{ $row->peserta }}"
+                                        data-total="{{ number_format($row->total,0,',','.') }}"
+                                        data-status="{{ $statusText[$row->status] ?? ucfirst($row->status) }}"
+                                        data-status-raw="{{ $row->status }}"
+                                        data-titik="{{ $displayTitik }}"
+                                        data-metode="{{ $row->metode_pembayaran ?? '-' }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
                         </div>
-                        <div class="table-data-cell">Open Trip Bromo</div>
-                        <div class="table-data-cell">15/10/2025</div>
-                        <div class="table-data-cell">2 Orang</div>
-                        <div class="table-data-cell">-</div>
-                        <div class="table-data-cell">700.000</div>
-                        <div class="table-data-cell"><span class="status-badge status-pending">Menunggu Konfirmasi</span></div>
-                        <div class="table-data-cell">
-                            <button class="detail-btn" onclick="showOrderDetail(1, 'pending')">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
                     </div>
-                </div>
-
-                <!-- Status: Menunggu Pembayaran -->
-                <div class="table-row-card">
-                    <div class="table-data-row">
-                        <div class="table-data-cell">
-                            <div class="user-info">
-                                <img src="{{ asset('images/profile.png') }}" alt="Kanya Neisya" class="user-avatar">
-                                <span class="user-name">Kanya Neisya</span>
+                @empty
+                    <div class="table-row-card">
+                        <div class="table-data-row">
+                            <div class="table-data-cell" style="text-align:center; width:100%;" colspan="8">
+                                Belum ada pemesanan.
                             </div>
                         </div>
-                        <div class="table-data-cell">Daily Trip Bromo</div>
-                        <div class="table-data-cell">20/10/2025</div>
-                        <div class="table-data-cell">3 Orang</div>
-                        <div class="table-data-cell">-</div>
-                        <div class="table-data-cell">1.050.000</div>
-                        <div class="table-data-cell"><span class="status-badge status-payment">Menunggu Pembayaran</span></div>
-                        <div class="table-data-cell">
-                            <button class="detail-btn" onclick="showOrderDetail(2, 'payment')">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
                     </div>
-                </div>
-
-                <!-- Status: Aktif -->
-                <div class="table-row-card">
-                    <div class="table-data-row">
-                        <div class="table-data-cell">
-                            <div class="user-info">
-                                <img src="{{ asset('images/profile.png') }}" alt="Kanya Neisya" class="user-avatar">
-                                <span class="user-name">Kanya Neisya</span>
-                            </div>
-                        </div>
-                        <div class="table-data-cell">Travel Bromo</div>
-                        <div class="table-data-cell">12/09/2025</div>
-                        <div class="table-data-cell">2 Orang</div>
-                        <div class="table-data-cell">Bank BCA</div>
-                        <div class="table-data-cell">2.000.000</div>
-                        <div class="table-data-cell"><span class="status-badge status-aktif">Aktif</span></div>
-                        <div class="table-data-cell">
-                            <button class="detail-btn" onclick="showOrderDetail(3, 'active')">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Status: Selesai -->
-                <div class="table-row-card">
-                    <div class="table-data-row">
-                        <div class="table-data-cell">
-                            <div class="user-info">
-                                <img src="{{ asset('images/profile.png') }}" alt="Kanya Neisya" class="user-avatar">
-                                <span class="user-name">Kanya Neisya</span>
-                            </div>
-                        </div>
-                        <div class="table-data-cell">Daily Trip</div>
-                        <div class="table-data-cell">28/07/2025</div>
-                        <div class="table-data-cell">5 Orang</div>
-                        <div class="table-data-cell">Dana</div>
-                        <div class="table-data-cell">1.750.000</div>
-                        <div class="table-data-cell"><span class="status-badge status-selesai">Selesai</span></div>
-                        <div class="table-data-cell">
-                            <button class="detail-btn" onclick="showOrderDetail(4, 'completed')">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pagination -->
-            <div class="pagination">
-                <button class="page-btn active">1</button>
+                @endforelse
             </div>
         </div>
     </div>
@@ -3150,41 +3134,35 @@
                     <div class="receipt-info">
                         <div class="info-section">
                             <h4>Informasi Pelanggan</h4>
-                            <p><strong>Nama:</strong> Kanya Neisya Maghfira</p>
-                            <p><strong>Email:</strong> kanyamaghfira@gmail.com</p>
-                            <p><strong>No. HP:</strong> +62 8166733267</p>
+                            <p><strong>Nama:</strong> {{ auth()->user()->username ?? '-' }}</p>
+                            <p><strong>Email:</strong> {{ auth()->user()->email ?? '-' }}</p>
+                            <p><strong>No. HP:</strong> +62 {{ auth()->user()->nomor_hp ?? '-' }}</p>
                         </div>
                         <div class="info-section">
                             <h4>Detail Pemesanan</h4>
-                            <p><strong>Tanggal:</strong> 28/07/2025</p>
-                            <p><strong>Status:</strong> <span class="status-badge status-selesai">Selesai</span></p>
+                            <p><strong>Tanggal:</strong> <span id="detailTanggal">-</span></p>
+                            <p><strong>Status:</strong> <span id="detailStatus" class="status-badge">-</span></p>
+                            <p><strong>Titik Penjemputan:</strong> <span id="detailTitik">-</span></p>
+                            <p><strong>Metode Pembayaran:</strong> <span id="detailMetode">-</span></p>
                         </div>
                     </div>
                     
                     <div class="receipt-items">
                         <h4>Detail Paket</h4>
                         <div class="item-row">
-                            <span class="item-name">Daily Trip Bromo</span>
-                            <span class="item-price">Rp 350.000</span>
+                            <span class="item-name" id="detailPaket">-</span>
+                            <span class="item-price" id="detailHargaSatuan">-</span>
                         </div>
                         <div class="item-row">
-                            <span class="item-name">Jumlah Orang: 5</span>
-                            <span class="item-price">x 5</span>
-                        </div>
-                        <div class="item-row">
-                            <span class="item-name">Transportasi</span>
-                            <span class="item-price">Rp 0</span>
-                        </div>
-                        <div class="item-row">
-                            <span class="item-name">Makan & Minum</span>
-                            <span class="item-price">Rp 0</span>
+                            <span class="item-name">Jumlah Orang: <span id="detailPeserta">-</span></span>
+                            <span class="item-price" id="detailKaliPeserta">x -</span>
                         </div>
                     </div>
                     
                     <div class="receipt-total">
                         <div class="total-row">
                             <span class="total-label">Subtotal:</span>
-                            <span class="total-amount">Rp 1.750.000</span>
+                            <span class="total-amount" id="detailSubtotal">-</span>
                         </div>
                         <div class="total-row">
                             <span class="total-label">Pajak:</span>
@@ -3192,7 +3170,7 @@
                         </div>
                         <div class="total-row">
                             <span class="total-label">Total:</span>
-                            <span class="total-amount">Rp 1.750.000</span>
+                            <span class="total-amount" id="detailTotal">-</span>
                         </div>
                     </div>
                     
@@ -3261,7 +3239,9 @@
                 <span class="detail-close" onclick="closePaymentModal()">&times;</span>
             </div>
             <div class="detail-modal-body">
-                <div class="payment-container">
+                <form id="paymentForm" class="payment-container" method="POST" action="" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="metode_pembayaran" id="metodePembayaranInput" value="">
                     <div class="payment-status">
                         <div class="status-icon payment-icon">
                             <i class="fas fa-credit-card"></i>
@@ -3274,19 +3254,23 @@
                         <h4>Detail Pemesanan</h4>
                         <div class="summary-item">
                             <span>Paket:</span>
-                            <span>Daily Trip Bromo</span>
+                            <span id="payPaket">-</span>
                         </div>
                         <div class="summary-item">
                             <span>Tanggal:</span>
-                            <span>20/10/2025</span>
+                            <span id="payTanggal">-</span>
                         </div>
                         <div class="summary-item">
                             <span>Jumlah Orang:</span>
-                            <span>3 Orang</span>
+                            <span id="payPeserta">- Orang</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Titik Penjemputan:</span>
+                            <span id="payTitik">-</span>
                         </div>
                         <div class="summary-item total">
                             <span>Total Pembayaran:</span>
-                            <span>Rp 1.050.000</span>
+                            <span id="payTotal">Rp -</span>
                         </div>
                     </div>
                     
@@ -3348,12 +3332,12 @@
                         </div>
                         
                         <div class="payment-actions">
-                            <button class="submit-payment-btn" onclick="submitPayment()">
+                            <button type="button" class="submit-payment-btn" onclick="submitPayment()">
                                 <i class="fas fa-check"></i> Konfirmasi Pembayaran
                             </button>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -3376,7 +3360,7 @@
                             <p>E-Ticket Perjalanan</p>
                         </div>
                         <div class="ticket-status">
-                            <span class="status-badge status-aktif">AKTIF</span>
+                            <span class="status-badge status-aktif">Aktif</span>
                         </div>
                     </div>
                     
@@ -3493,6 +3477,55 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        function openDetailModal(button) {
+            var id = button.getAttribute('data-id');
+            var paket = button.getAttribute('data-paket');
+            var tanggal = button.getAttribute('data-tanggal');
+            var peserta = button.getAttribute('data-peserta');
+            var total = button.getAttribute('data-total');
+            var status = button.getAttribute('data-status');
+            var statusRaw = button.getAttribute('data-status-raw');
+            var titik = button.getAttribute('data-titik');
+            var metode = button.getAttribute('data-metode');
+
+            if (statusRaw === 'dikonfirmasi') {
+                // Set action form pembayaran untuk pemesanan ini
+                var form = document.getElementById('paymentForm');
+                form.action = "{{ url('/pemesanan') }}/" + id + "/konfirmasi-pembayaran";
+
+                // Reset pilihan metode sebelumnya
+                document.getElementById('metodePembayaranInput').value = '';
+
+                // Buka modal pembayaran
+                document.getElementById('payPaket').textContent = paket;
+                document.getElementById('payTanggal').textContent = tanggal;
+                document.getElementById('payPeserta').textContent = peserta + ' Orang';
+                document.getElementById('payTitik').textContent = titik;
+                document.getElementById('payTotal').textContent = 'Rp ' + total;
+
+                document.getElementById('paymentModal').style.display = 'block';
+            } else {
+                // Buka modal detail biasa (termasuk saat status selesai)
+                document.getElementById('detailPaket').textContent = paket;
+                document.getElementById('detailTanggal').textContent = tanggal;
+                document.getElementById('detailPeserta').textContent = peserta;
+                document.getElementById('detailKaliPeserta').textContent = 'x ' + peserta;
+                document.getElementById('detailSubtotal').textContent = 'Rp ' + total;
+                document.getElementById('detailTotal').textContent = 'Rp ' + total;
+                document.getElementById('detailStatus').textContent = status;
+                document.getElementById('detailTitik').textContent = titik;
+                document.getElementById('detailMetode').textContent = metode;
+
+                document.getElementById('detailModal').style.display = 'block';
+            }
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+    </script>
 <script>
 
         // Pagination functionality
@@ -3552,6 +3585,7 @@
             const paymentDetails = document.getElementById('paymentDetails');
             const bankName = document.getElementById('bankName');
             const accountNumber = document.getElementById('accountNumber');
+            const metodeInput = document.getElementById('metodePembayaranInput');
             
             paymentDetails.style.display = 'block';
             
@@ -3559,18 +3593,22 @@
                 case 'bca':
                     bankName.textContent = 'Bank BCA';
                     accountNumber.textContent = '1234567890';
+                    metodeInput.value = 'Bank BCA';
                     break;
                 case 'mandiri':
                     bankName.textContent = 'Bank Mandiri';
                     accountNumber.textContent = '9876543210';
+                    metodeInput.value = 'Bank Mandiri';
                     break;
                 case 'dana':
                     bankName.textContent = 'Dana';
                     accountNumber.textContent = '082143788855';
+                    metodeInput.value = 'Dana';
                     break;
                 case 'gopay':
                     bankName.textContent = 'GoPay';
                     accountNumber.textContent = '082143788855';
+                    metodeInput.value = 'GoPay';
                     break;
             }
         }
@@ -3595,15 +3633,14 @@
 
         // Submit payment
         function submitPayment() {
-            const fileInput = document.getElementById('paymentProof');
-            if (!fileInput.files[0]) {
-                alert('Silakan upload bukti pembayaran terlebih dahulu');
+            const metodeInput = document.getElementById('metodePembayaranInput');
+            if (!metodeInput.value) {
+                alert('Silakan pilih metode pembayaran terlebih dahulu');
                 return;
             }
             
-            // Here you would normally send the data to server
-            alert('Bukti pembayaran berhasil dikirim! Admin akan memverifikasi dalam 1x24 jam.');
-            closePaymentModal();
+            // Submit form ke backend untuk menyimpan metode_pembayaran
+            document.getElementById('paymentForm').submit();
         }
 
         // Ticket actions

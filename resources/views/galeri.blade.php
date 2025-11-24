@@ -2299,57 +2299,9 @@
     </div>
 
     <!-- Testimonials -->
-    <section class="testimonials">
-        <div class="container animate-on-scroll">
-            <h2>Apa <span>Kata Mereka?</span></h2>
-            <div class="testimonial-grid">
-                <div class="testimonial-card animate-on-scroll">
-                    <div class="testimonial-avatar">
-                        <div class="avatar-ring"></div>
-                    </div>
-                    <div class="testimonial-name">Sarah Jessica</div>
-                    <div class="testimonial-text">Sangat puas dengan pelayanan MlakuBromo! Guide yang ramah, penginapan nyaman, dan yang terpenting pemandangan yang luar biasa indah. Highly recommended!</div>
-                    <div class="testimonial-rating">
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                    </div>
-                </div>
-                
-                <div class="testimonial-card animate-on-scroll">
-                    <div class="testimonial-avatar">
-                        <div class="avatar-ring"></div>
-                    </div>
-                    <div class="testimonial-name">Michael Johnson</div>
-                    <div class="testimonial-text">Pengalaman yang tak terlupakan! Tim MlakuBromo sangat profesional dan membantu. Sunrise di Bromo benar-benar spektakuler. Terima kasih!</div>
-                    <div class="testimonial-rating">
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star empty"></i>
-                    </div>
-                </div>
-                
-                <div class="testimonial-card animate-on-scroll">
-                    <div class="testimonial-avatar">
-                        <div class="avatar-ring"></div>
-                    </div>
-                    <div class="testimonial-name">Amanda Smith</div>
-                    <div class="testimonial-text">Pelayanan excellent! Dari awal booking hingga selesai trip, semuanya berjalan lancar. Guide yang berpengalaman dan ramah. Pasti akan kembali lagi!</div>
-                    <div class="testimonial-rating">
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <div class="container">
+        @include('components.testimonial-section')
+    </div>
 
     <!-- Why Choose Us -->
     <section class="why-choose" id="why-choose">

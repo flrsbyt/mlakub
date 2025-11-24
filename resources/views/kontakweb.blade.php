@@ -2042,36 +2042,89 @@
 
     <!-- Testimonial Form -->
     <div class="testimonial-form animate-on-scroll">
-        <div class="success-message" id="successMessage">
-        <i class="fas fa-check-circle"></i>
-        Terima kasih! Testimoni Anda telah berhasil dikirim.
-        </div>
+        @if(session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
 
-        <h3 class="form-title  animate-on-scroll">
-        Kirim <span class="highlight">Testimoni</span>
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <h3 class="form-title animate-on-scroll">
+            Kirim <span class="highlight">Testimoni</span>
         </h3>
 
-        <form id="testimonialForm" action="{{ route('kontak.testimoni.store') }}" method="POST">
-        @csrf
-        <div class="form-group">
-            <input type="text" class="form-input" name="nama" placeholder="Nama Lengkap" required>
-        </div>
+        <form id="testimonialForm" action="{{ route('kontak.testimoni.store') }}" method="POST" onsubmit="return checkAuth(event)">
+            @csrf
+            <div class="form-group">
+                <input type="text" class="form-input" name="nama" 
+                       value="{{ auth()->check() ? auth()->user()->username : old('nama') }}" 
+                       placeholder="Nama Lengkap" required>
+            </div>
 
-        <div class="form-group">
-            <input type="email" class="form-input" name="email" placeholder="Email Address" required>
-        </div>
+            <div class="form-group">
+                <input type="email" class="form-input" name="email" 
+                       value="{{ auth()->check() ? auth()->user()->email : old('email') }}" 
+                       placeholder="Email Address" required>
+            </div>
 
-        <div class="form-group">
-            <input type="number" class="form-input" name="rating" placeholder="Rating (1-5 bintang)" min="1" max="5" required>
-        </div>
+            <div class="form-group">
+                <select class="form-input" name="rating" required>
+                    <option value="">Pilih Rating</option>
+                    <option value="5" {{ old('rating') == '5' ? 'selected' : '' }}>5 - Sangat Baik</option>
+                    <option value="4" {{ old('rating') == '4' ? 'selected' : '' }}>4 - Baik</option>
+                    <option value="3" {{ old('rating') == '3' ? 'selected' : '' }}>3 - Cukup</option>
+                    <option value="2" {{ old('rating') == '2' ? 'selected' : '' }}>2 - Kurang</option>
+                    <option value="1" {{ old('rating') == '1' ? 'selected' : '' }}>1 - Sangat Kurang</option>
+                </select>
+            </div>
 
-        <div class="form-group">
-            <textarea class="form-input form-textarea" name="keterangan" placeholder="Ceritakan pengalaman Anda bersama MlakuBromo..." required></textarea>
-        </div>
+            <div class="form-group">
+                <textarea class="form-input form-textarea" name="keterangan" 
+                          placeholder="Ceritakan pengalaman Anda bersama MlakuBromo..." required>{{ old('keterangan') }}</textarea>
+            </div>
 
-        <button type="submit" class="submit-btn">Kirim Testimoni</button>
+            @auth
+                <button type="submit" class="submit-btn">Kirim Testimoni</button>
+            @else
+                <button type="button" onclick="showLoginModal()" class="submit-btn">Login untuk Mengirim Testimoni</button>
+            @endauth
         </form>
     </div>
+
+    @push('scripts')
+    <script>
+    function showLoginModal() {
+        // Cek jika ada modal login
+        const loginModal = document.getElementById('loginModal');
+        if (loginModal) {
+            loginModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Mencegah scroll
+        } else {
+            // Jika tidak ada modal, redirect ke halaman login
+            window.location.href = "{{ route('login') }}";
+        }
+    }
+
+    function checkAuth(event) {
+        // Jika user belum login, tampilkan modal login dan hentikan submit form
+        @guest
+            event.preventDefault();
+            showLoginModal();
+            return false;
+        @endguest
+        return true;
+    }
+    </script>
+    @endpush
 
     </div>
 
@@ -2102,57 +2155,10 @@
     </div>
 
     <!-- Testimonials -->
-    <section class="testimonials">
-        <div class="container  animate-on-scroll">
-            <h2>Apa <span>Kata Mereka?</span></h2>
-            <div class="testimonial-grid">
-                <div class="testimonial-card  animate-on-scroll">
-                    <div class="testimonial-avatar">
-                        <div class="avatar-ring"></div>
-                    </div>
-                    <div class="testimonial-name">Sarah Jessica</div>
-                    <div class="testimonial-text">Sangat puas dengan pelayanan MlakuBromo! Guide yang ramah, penginapan nyaman, dan yang terpenting pemandangan yang luar biasa indah. Highly recommended!</div>
-                    <div class="testimonial-rating">
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                    </div>
-                </div>
-                
-                <div class="testimonial-card  animate-on-scroll">
-                    <div class="testimonial-avatar">
-                        <div class="avatar-ring"></div>
-                    </div>
-                    <div class="testimonial-name">Michael Johnson</div>
-                    <div class="testimonial-text">Pengalaman yang tak terlupakan! Tim MlakuBromo sangat profesional dan membantu. Sunrise di Bromo benar-benar spektakuler. Terima kasih!</div>
-                    <div class="testimonial-rating">
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star empty"></i>
-                    </div>
-                </div>
-                
-                <div class="testimonial-card  animate-on-scroll">
-                    <div class="testimonial-avatar">
-                        <div class="avatar-ring"></div>
-                    </div>
-                    <div class="testimonial-name">Amanda Smith</div>
-                    <div class="testimonial-text">Pelayanan excellent! Dari awal booking hingga selesai trip, semuanya berjalan lancar. Guide yang berpengalaman dan ramah. Pasti akan kembali lagi!</div>
-                    <div class="testimonial-rating">
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                        <i class="fas fa-star star"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <!-- Testimonial Section -->
+    <div class="container">
+        @include('components.testimonial-section')
+    </div>
 
     <!-- Footer -->
     <footer class="footer" id="kontak">
@@ -2602,5 +2608,55 @@
     }
 
 </script>
+@if(session('success'))
+<!-- Toast Notification -->
+<div id="toast" class="toast show" style="position: fixed; bottom: 20px; right: 20px; background: #4CAF50; color: white; padding: 15px 25px; border-radius: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 1000; display: flex; align-items: center; justify-content: space-between; min-width: 300px; animation: slideIn 0.3s ease-out;">
+    <div style="display: flex; align-items: center;">
+        <div style="margin-right: 15px; font-size: 24px;">✓</div>
+        <div>
+            <div style="font-weight: 600; margin-bottom: 3px;">Berhasil!</div>
+            <div style="font-size: 14px; opacity: 0.9;">{{ session('success') }}</div>
+        </div>
+    </div>
+    <div onclick="closeToast()" style="margin-left: 15px; cursor: pointer; font-size: 20px; opacity: 0.7;">&times;</div>
+</div>
+
+<style>
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.toast {
+    transition: all 0.3s ease;
+}
+
+.toast.fade-out {
+    animation: fadeOut 0.3s ease-out;
+}
+</style>
+
+<script>
+function closeToast() {
+    const toast = document.getElementById('toast');
+    if (toast) {
+        toast.classList.add('fade-out');
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 300);
+    }
+}
+
+// Auto close after 5 seconds
+setTimeout(() => {
+    closeToast();
+}, 5000);
+</script>
+@endif
 </body>
 </html>
