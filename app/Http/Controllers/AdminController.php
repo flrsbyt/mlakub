@@ -7,11 +7,13 @@ use App\Models\User;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Models\TopDestination;
+use App\Models\PemesananPaket;
 
 class AdminController extends Controller
 {
     // 🔹 Dashboard
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         // Cek apakah user memiliki role admin
         if (Auth::user()->role !== 'admin') {
@@ -23,12 +25,58 @@ class AdminController extends Controller
         $totalRegularUsers = User::where('role', 'user')->count();
         
         $recentUsers = User::orderBy('tanggal_daftar', 'desc')->take(5)->get();
+        $recentBookings = PemesananPaket::orderBy('created_at', 'desc')->take(8)->get();
+        // Stats: current month bookings and revenue
+        $startOfMonth = now()->startOfMonth()->toDateString();
+        $endOfMonth = now()->endOfMonth()->toDateString();
+        $monthlyBookings = PemesananPaket::whereBetween('tanggal_keberangkatan', [$startOfMonth, $endOfMonth])->count();
+        $monthlyRevenue = (int) PemesananPaket::whereBetween('tanggal_keberangkatan', [$startOfMonth, $endOfMonth])->sum('total');
+        $activePackages = PemesananPaket::select('paket')->distinct()->count('paket');
+        // Performance metrics (business metrics)
+        $confirmedThisMonth = PemesananPaket::whereBetween('tanggal_keberangkatan', [$startOfMonth, $endOfMonth])
+            ->where('status', 'dikonfirmasi')
+            ->count();
+        $cancelledThisMonth = PemesananPaket::whereBetween('tanggal_keberangkatan', [$startOfMonth, $endOfMonth])
+            ->where('status', 'dibatalkan')
+            ->count();
+        $avgBookingValue = $monthlyBookings > 0 ? (int) floor($monthlyRevenue / max(1, $monthlyBookings)) : 0;
+        $confirmationRate = $monthlyBookings > 0 ? round(($confirmedThisMonth / $monthlyBookings) * 100, 1) : 0;
+        $cancellationRate = $monthlyBookings > 0 ? round(($cancelledThisMonth / $monthlyBookings) * 100, 1) : 0;
+        $newUsersThisMonth = User::whereDate('tanggal_daftar', '>=', $startOfMonth)
+            ->whereDate('tanggal_daftar', '<=', $endOfMonth)
+            ->count();
+        // Ambil Top Destinasi dinamis berdasarkan periode (default 30 hari)
+        $allowed = [7, 30, 90];
+        $period = (int) $request->get('period', 30);
+        if (!in_array($period, $allowed, true)) { $period = 30; }
+        $since = now()->subDays($period)->toDateString();
+        $agg = PemesananPaket::query()
+            ->selectRaw('paket as name, COUNT(*) as bookings')
+            ->whereDate('tanggal_keberangkatan', '>=', $since)
+            ->groupBy('paket')
+            ->orderByDesc('bookings')
+            ->limit(3)
+            ->get();
+        // Jika kosong, fallback ke TopDestination manual (jika ada)
+        $topDestinations = $agg->isNotEmpty()
+            ? $agg
+            : TopDestination::where('is_active', true)->orderBy('sort_order')->take(3)->get(['name','bookings']);
         
         return view('admin.dashboard', compact(
             'totalUsers',
             'totalAdmins',
             'totalRegularUsers',
-            'recentUsers'
+            'recentUsers',
+            'recentBookings',
+            'topDestinations',
+            'monthlyBookings',
+            'monthlyRevenue',
+            'activePackages',
+            'period',
+            'avgBookingValue',
+            'confirmationRate',
+            'cancellationRate',
+            'newUsersThisMonth'
         ));
     }
 

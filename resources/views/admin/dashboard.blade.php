@@ -31,7 +31,7 @@
         <i class="fas fa-box"></i>
       </div>
       <div class="stat-info">
-        <div class="stat-number" id="activePackages" data-target="4">4</div>
+        <div class="stat-number" id="activePackages" data-target="{{ (int) ($activePackages ?? 0) }}">{{ number_format((int) ($activePackages ?? 0)) }}</div>
         <div class="stat-label">Paket Aktif</div>
         <div class="stat-trend positive">
           <i class="fas fa-plus"></i>
@@ -48,7 +48,7 @@
         <i class="fas fa-calendar-check"></i>
       </div>
       <div class="stat-info">
-        <div class="stat-number" id="monthlyBookings">12</div>
+        <div class="stat-number" id="monthlyBookings">{{ number_format((int) ($monthlyBookings ?? 0)) }}</div>
         <div class="stat-label">Booking Bulan Ini</div>
         <div class="stat-trend positive">
           <i class="fas fa-target"></i>
@@ -65,7 +65,7 @@
         <i class="fas fa-dollar-sign"></i>
       </div>
       <div class="stat-info">
-        <div class="stat-number">Rp 1.200.000</div>
+        <div class="stat-number">Rp {{ number_format((int) ($monthlyRevenue ?? 0), 0, ',', '.') }}</div>
         <div class="stat-label">Revenue Bulan Ini</div>
         <div class="stat-trend positive">
           <i class="fas fa-arrow-up"></i>
@@ -208,49 +208,36 @@
         </div>
         
         <div class="activity-list" id="recentActivities">
+          @forelse(($recentBookings ?? []) as $rb)
+          <?php
+            $status = strtolower($rb->status ?? '');
+            $icon = 'fas fa-shopping-cart';
+            $indicator = 'new';
+            if ($status === 'dikonfirmasi') { $icon = 'fas fa-check-circle'; $indicator = 'success'; }
+            elseif ($status === 'dibatalkan') { $icon = 'fas fa-times-circle'; $indicator = 'negative'; }
+            elseif ($status === 'selesai') { $icon = 'fas fa-flag-checkered'; $indicator = 'positive'; }
+          ?>
           <div class="activity-item">
             <div class="activity-avatar">
-              <i class="fas fa-user-plus"></i>
+              <i class="{{ $icon }}"></i>
             </div>
             <div class="activity-content">
-              <span class="activity-text">User baru mendaftar dari Jakarta</span>
-              <span class="activity-time">2 menit lalu</span>
+              <span class="activity-text">{{ $rb->paket }} - {{ ucfirst($status ?: 'menunggu') }} ({{ (int) $rb->peserta }} org)</span>
+              <span class="activity-time">{{ optional($rb->created_at)->diffForHumans() }}</span>
             </div>
-            <div class="activity-status-indicator new"></div>
+            <div class="activity-status-indicator {{ $indicator }}"></div>
           </div>
-          
+          @empty
           <div class="activity-item">
             <div class="activity-avatar">
-              <i class="fas fa-shopping-cart"></i>
+              <i class="fas fa-info-circle"></i>
             </div>
             <div class="activity-content">
-              <span class="activity-text">Booking paket Bromo Sunrise berhasil</span>
-              <span class="activity-time">5 menit lalu</span>
+              <span class="activity-text">Belum ada aktivitas booking terbaru</span>
+              <span class="activity-time">-</span>
             </div>
-            <div class="activity-status-indicator success"></div>
           </div>
-          
-          <div class="activity-item">
-            <div class="activity-avatar">
-              <i class="fas fa-star"></i>
-            </div>
-            <div class="activity-content">
-              <span class="activity-text">Review 5 bintang ditambahkan</span>
-              <span class="activity-time">8 menit lalu</span>
-            </div>
-            <div class="activity-status-indicator positive"></div>
-          </div>
-          
-          <div class="activity-item">
-            <div class="activity-avatar">
-              <i class="fas fa-credit-card"></i>
-            </div>
-            <div class="activity-content">
-              <span class="activity-text">Pembayaran paket Bromo Sunrise</span>
-              <span class="activity-time">12 menit lalu</span>
-            </div>
-            <div class="activity-status-indicator success"></div>
-          </div>
+          @endforelse
         </div>
         
         <div class="activity-footer">
@@ -267,44 +254,40 @@
   <div class="widgets-row">
     <div class="widget-card">
       <div class="widget-header">
-        <h4>Top Destinasi</h4>
-        <select class="widget-filter">
-          <option>Bulan Ini</option>
-          <option>3 Bulan</option>
-          <option>Tahun Ini</option>
-        </select>
+        <h4>Top Paket Trip</h4>
+        <form method="GET" action="{{ route('admin.dashboard') }}" style="display:flex;gap:8px;align-items:center;">
+          <select class="widget-filter" name="period" onchange="this.form.submit()">
+            <option value="7" {{ ($period ?? 30) == 7 ? 'selected' : '' }}>7 Hari</option>
+            <option value="30" {{ ($period ?? 30) == 30 ? 'selected' : '' }}>30 Hari</option>
+            <option value="90" {{ ($period ?? 30) == 90 ? 'selected' : '' }}>90 Hari</option>
+          </select>
+        </form>
       </div>
       <div class="destination-list">
+        @forelse(($topDestinations ?? []) as $idx => $dest)
         <div class="destination-item">
-          <div class="destination-rank">1</div>
+          <div class="destination-rank">{{ $idx + 1 }}</div>
           <div class="destination-info">
-            <span class="destination-name">Bromo Sunrise</span>
-            <span class="destination-bookings">245 booking</span>
+            <span class="destination-name">{{ $dest->name }}</span>
+            <span class="destination-bookings">{{ number_format($dest->bookings) }} booking</span>
           </div>
           <div class="destination-progress">
-            <div class="progress-bar" style="width: 85%"></div>
+            <?php $pct = max(0, min(100, ($topDestinations->max('bookings') ?: 1) ? intval(($dest->bookings / max(1, $topDestinations->max('bookings'))) * 100) : 0)); ?>
+            <div class="progress-bar" style="width: {{ $pct }}%"></div>
           </div>
         </div>
+        @empty
         <div class="destination-item">
-          <div class="destination-rank">2</div>
+          <div class="destination-rank">-</div>
           <div class="destination-info">
-            <span class="destination-name">Tumpak sewu</span>
-            <span class="destination-bookings">189 booking</span>
+            <span class="destination-name">Belum ada data</span>
+            <span class="destination-bookings">Tambahkan lewat menu Top Destinasi</span>
           </div>
           <div class="destination-progress">
-            <div class="progress-bar" style="width: 65%"></div>
+            <div class="progress-bar" style="width: 0%"></div>
           </div>
         </div>
-        <div class="destination-item">
-          <div class="destination-rank">3</div>
-          <div class="destination-info">
-            <span class="destination-name">Kawah Ijen</span>
-            <span class="destination-bookings">156 booking</span>
-          </div>
-          <div class="destination-progress">
-            <div class="progress-bar" style="width: 55%"></div>
-          </div>
-        </div>
+        @endforelse
       </div>
     </div>
 
@@ -318,38 +301,38 @@
       <div class="metrics-grid">
         <div class="metric-item">
           <div class="metric-icon bounce-rate">
-            <i class="fas fa-chart-line"></i>
+            <i class="fas fa-receipt"></i>
           </div>
           <div class="metric-info">
-            <span class="metric-value">32.5%</span>
-            <span class="metric-label">Bounce Rate</span>
+            <span class="metric-value">Rp {{ number_format((int) ($avgBookingValue ?? 0), 0, ',', '.') }}</span>
+            <span class="metric-label">Rata-rata Nilai Booking</span>
           </div>
         </div>
         <div class="metric-item">
           <div class="metric-icon session-duration">
-            <i class="fas fa-clock"></i>
+            <i class="fas fa-check-circle"></i>
           </div>
           <div class="metric-info">
-            <span class="metric-value">4m 32s</span>
-            <span class="metric-label">Avg. Session</span>
+            <span class="metric-value">{{ number_format((float) ($confirmationRate ?? 0), 1) }}%</span>
+            <span class="metric-label">Tingkat Konfirmasi</span>
           </div>
         </div>
         <div class="metric-item">
           <div class="metric-icon conversion-rate">
-            <i class="fas fa-trophy"></i>
+            <i class="fas fa-times-circle"></i>
           </div>
           <div class="metric-info">
-            <span class="metric-value">12.8%</span>
-            <span class="metric-label">Conversion</span>
+            <span class="metric-value">{{ number_format((float) ($cancellationRate ?? 0), 1) }}%</span>
+            <span class="metric-label">Tingkat Pembatalan</span>
           </div>
         </div>
         <div class="metric-item">
           <div class="metric-icon page-views">
-            <i class="fas fa-eye"></i>
+            <i class="fas fa-user-plus"></i>
           </div>
           <div class="metric-info">
-            <span class="metric-value">2.4M</span>
-            <span class="metric-label">Page Views</span>
+            <span class="metric-value">{{ number_format((int) ($newUsersThisMonth ?? 0)) }}</span>
+            <span class="metric-label">User Baru Bulan Ini</span>
           </div>
         </div>
       </div>

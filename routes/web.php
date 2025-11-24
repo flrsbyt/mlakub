@@ -11,6 +11,7 @@ use App\Http\Controllers\KontakController;
 use App\Http\Controllers\CaraPemesananController;
 use App\Http\Controllers\PemesananController;
 use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\TopDestinationController;
 
 // Authentication Routes
 Route::get('/login', function () {
@@ -62,6 +63,12 @@ Route::middleware(['auth'])
 
         // Paket Trip
         Route::get('/paket-trip', [AdminController::class, 'paketTrip'])->name('paket-trip');
+
+        // Top Destinations (CRUD sederhana)
+        Route::get('/top-destinations', [TopDestinationController::class, 'index'])->name('top-destinations.index');
+        Route::post('/top-destinations', [TopDestinationController::class, 'store'])->name('top-destinations.store');
+        Route::put('/top-destinations/{top_destination}', [TopDestinationController::class, 'update'])->name('top-destinations.update');
+        Route::delete('/top-destinations/{top_destination}', [TopDestinationController::class, 'destroy'])->name('top-destinations.destroy');
 
         // Pemesanan (admin) - gunakan path /pesan-paket
         Route::get('/pesan-paket/{pemesanan}', [PemesananController::class, 'show'])->name('pemesanan.show');
